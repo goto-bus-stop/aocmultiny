@@ -13,6 +13,7 @@ public:
   Lobby ();
 
   void host ();
+  void join (std::string remoteIp);
 };
 
 }

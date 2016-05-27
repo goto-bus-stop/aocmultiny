@@ -4,7 +4,7 @@ build: aocmultiny lib/dplayx.lib lib/dxguid.lib
 		-Wall \
 		-static \
 		-L ./lib \
-		aocmultiny/*.hpp aocmultiny/*.cpp \
+		aocmultiny/*.hpp aocmultiny/*.cpp aocmultiny/dplib/*.hpp aocmultiny/dplib/*.cpp \
 		-lole32 -loleaut32 \
 		-ldplayx -ldxguid
 

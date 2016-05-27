@@ -1,4 +1,6 @@
+#include <string>
 #include "Lobby.hpp"
+#include "dplib/main.hpp"
 
 namespace aocmultiny {
 
@@ -25,7 +27,19 @@ HRESULT Lobby::create () {
   return hr;
 }
 
+/**
+ * Host a game.
+ */
 void Lobby::host () {
+  dplib::DPAddress address (this->dpLobby, "");
+  return;
+}
+
+/**
+ * Join a game.
+ */
+void Lobby::join (std::string remoteIp) {
+  dplib::DPAddress address (this->dpLobby, remoteIp);
   return;
 }
 
