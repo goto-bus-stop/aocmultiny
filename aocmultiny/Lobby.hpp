@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "dplib/main.hpp"
 
 namespace aocmultiny {
 
@@ -8,6 +9,8 @@ private:
   LPDIRECTPLAYLOBBY3A dpLobby = NULL;
 
   HRESULT create ();
+  void launch (dplib::DPAddress address, bool isHosting);
+  bool receiveMessage (DWORD appId);
 
 public:
   Lobby ();

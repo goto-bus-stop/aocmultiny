@@ -1,17 +1,21 @@
+#include <string>
+#include <iostream>
 #include "main.hpp"
 #include "Lobby.hpp"
+
+using namespace std;
 
 namespace aocmultiny {
 
 void main () {
   CoInitialize(NULL);
-  printf("Starting\n");
+  wcout << "[main] Starting" << endl;
 
   Lobby lobby;
 
   lobby.host();
 
-  printf("Did stuff!\n");
+  wcout << "[main] Exiting" << endl;
 
   CoUninitialize();
 }
