@@ -20,7 +20,7 @@ HRESULT Lobby::create () {
     NULL,
     CLSCTX_INPROC_SERVER,
     IID_IDirectPlayLobby3A,
-    (void**)this->dpLobby
+    (void**)&this->dpLobby
   );
   return hr;
 }
