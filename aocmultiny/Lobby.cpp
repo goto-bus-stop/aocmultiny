@@ -7,7 +7,10 @@ using namespace std;
 
 namespace aocmultiny {
 
-Lobby::Lobby () {
+Lobby::Lobby ()
+    :
+    guid({ 0 }),
+    isHosting(false) {
   CoCreateInstance(
     CLSID_DirectPlay,
     NULL,
@@ -35,24 +38,20 @@ HRESULT Lobby::create () {
  */
 void Lobby::host () {
   dplib::DPAddress address (this->dpLobby, "");
-  this->launch(address, true);
+  CoCreateGuid(&this->guid);
+  this->isHosting = true;
+  this->launch(address);
   return;
 }
 
 /**
  * Join a game.
  */
-void Lobby::join (string remoteIp) {
+void Lobby::join (GUID gameId, string remoteIp) {
+  this->guid = gameId;
   dplib::DPAddress address (this->dpLobby, remoteIp);
-  this->launch(address, false);
+  this->launch(address);
   return;
-}
-
-GUID createGuid () {
-  GUID guid;
-  // CoCreateGuid(&guid);
-  guid = { 0xABCDEF00, 0xFC90, 0x4ee1, { 0xAE, 0x5A, 0x63, 0xDA, 0xFA, 0x05, 0x59, 0x50 } };
-  return guid;
 }
 
 bool Lobby::receiveMessage (DWORD appId) {
@@ -121,9 +120,8 @@ bool Lobby::receiveMessage (DWORD appId) {
   return true;
 }
 
-void Lobby::launch (dplib::DPAddress address, bool isHosting) {
-  auto guid = createGuid();
-  auto sessionDesc = new dplib::DPSessionDesc(guid, "Session", "", isHosting);
+void Lobby::launch (dplib::DPAddress address) {
+  auto sessionDesc = new dplib::DPSessionDesc(this->guid, "Session", "", this->isHosting);
   auto playerName = new dplib::DPName("My Name");
   auto connection = new dplib::DPLConnection(address, sessionDesc, playerName);
 

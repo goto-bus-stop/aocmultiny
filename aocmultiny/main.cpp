@@ -13,12 +13,12 @@ void main (vector<string> params) {
   CoInitialize(NULL);
   wcout << "[main] Starting" << endl;
 
-  Lobby lobby;
-
   if (params[0] == "host") {
+    Lobby lobby;
     lobby.host();
   } else if (params[0] == "join") {
-    lobby.join(params[1]);
+    Lobby lobby;
+    lobby.join({ 0 }, params[1]);
   }
 
   wcout << "[main] Exiting" << endl;
