@@ -1,0 +1,13 @@
+language: cpp
+before_script:
+  - curl -sSL "https://github.com/neovim/deps/raw/master/opt/i686-w64-mingw32-gcc-4.8.0-linux64_rubenvb.tar.xz" | tar xJf - -C "${HOME}/.local"
+script: make
+
+env:
+  global:
+    - PATH="$HOME/.local/mingw32/bin:$PATH"
+
+addons:
+  apt:
+    packages:
+      - wine
