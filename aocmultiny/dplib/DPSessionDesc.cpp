@@ -30,7 +30,7 @@ bool DPSessionDesc::isHost () {
 }
 
 void DPSessionDesc::alloc () {
-  DPSESSIONDESC2* sessionDesc = (DPSESSIONDESC2*) malloc(sizeof(DPSESSIONDESC2));
+  auto sessionDesc = (DPSESSIONDESC2*) malloc(sizeof(DPSESSIONDESC2));
   sessionDesc->dwSize = sizeof(DPSESSIONDESC2);
   sessionDesc->dwFlags = 0;
   wcout << "[DPSessionDesc::alloc] guidInstance: " << GUIDToString(guidInstance) << endl;

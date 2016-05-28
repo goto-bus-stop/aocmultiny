@@ -20,7 +20,7 @@ Lobby::Lobby () {
 }
 
 HRESULT Lobby::create () {
-  HRESULT hr = CoCreateInstance(
+  auto hr = CoCreateInstance(
     CLSID_DirectPlayLobby,
     NULL,
     CLSCTX_INPROC_SERVER,
@@ -57,7 +57,7 @@ bool Lobby::receiveMessage (DWORD appId) {
   DWORD messageFlags;
   DWORD dataSize = 0;
   DWORD responseSize = 0;
-  HRESULT hr = this->dpLobby->ReceiveLobbyMessage(0, appId, &messageFlags, NULL, &dataSize);
+  auto hr = this->dpLobby->ReceiveLobbyMessage(0, appId, &messageFlags, NULL, &dataSize);
   if (hr != DPERR_BUFFERTOOSMALL) {
     wcout << "[Lobby::receiveMessage] Error: should be BUFFERTOOSMALL" << endl;
     return false;
@@ -74,7 +74,7 @@ bool Lobby::receiveMessage (DWORD appId) {
     free(data);
     return true;
   }
-  DPLMSG_SYSTEMMESSAGE* sysMsg = (DPLMSG_SYSTEMMESSAGE*) data;
+  auto sysMsg = reinterpret_cast<DPLMSG_SYSTEMMESSAGE*>(data);
   DPLMSG_GETPROPERTY* getPropMsg;
   DPLMSG_GETPROPERTYRESPONSE* getPropRes;
   wcout << "[Lobby::receiveMessage] received SYSTEMMESSAGE, processing" << endl;
@@ -83,7 +83,6 @@ bool Lobby::receiveMessage (DWORD appId) {
     wcout << "[Lobby::receiveMessage] received APPTERMINATED message" << endl
               << "Press <enter> to exit." << endl;
     return false;
-    break;
   case DPLSYS_GETPROPERTY:
     wcout << "[Lobby::receiveMessage] received GETPROPERTY message" << endl;
     getPropMsg = (DPLMSG_GETPROPERTY*) data;
@@ -121,23 +120,22 @@ bool Lobby::receiveMessage (DWORD appId) {
 }
 
 void Lobby::launch (dplib::DPAddress address, bool isHosting) {
-  GUID guid = createGuid();
-  dplib::DPSessionDesc* sessionDesc = new dplib::DPSessionDesc(guid, L"Session", L"", isHosting);
-  dplib::DPName* playerName = new dplib::DPName(L"My Name");
-  dplib::DPLConnection* connection = new dplib::DPLConnection(address, sessionDesc, playerName);
+  auto guid = createGuid();
+  auto sessionDesc = new dplib::DPSessionDesc(guid, L"Session", L"", isHosting);
+  auto playerName = new dplib::DPName(L"My Name");
+  auto connection = new dplib::DPLConnection(address, sessionDesc, playerName);
 
-  HANDLE receiveEvent = CreateEvent(NULL, false, false, NULL);
+  auto receiveEvent = CreateEvent(NULL, false, false, NULL);
   DWORD appId = 0;
 
   wcout << "[Lobby::launch] Launching app" << endl;
 
-  HRESULT hr = this->dpLobby->RunApplication(0, &appId, connection->unwrap(), receiveEvent);
+  auto hr = this->dpLobby->RunApplication(0, &appId, connection->unwrap(), receiveEvent);
   if (FAILED(hr)) {
     // oops.
     wcout << "[Lobby::launch] Something went wrong:" << endl;
     cout << dplib::getDPError(hr) << endl;
   } else {
-    //HANDLE thread = CreateThread(NULL, 0, receiveThread, &receiveEvent, 0, NULL);
     bool keepGoing = true;
     while (keepGoing && WaitForSingleObject(receiveEvent, INFINITE) == WAIT_OBJECT_0) {
       wcout << "[Lobby::launch] receiving lobby message" << endl;

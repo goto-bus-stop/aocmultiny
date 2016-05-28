@@ -15,8 +15,10 @@ DPName::DPName (std::wstring name)
 void DPName::alloc () {
   this->dpName = (DPNAME*) malloc(sizeof(DPNAME));
 
-  wchar_t* nameStr = (wchar_t*) calloc(this->name.length() + 1, sizeof(wchar_t));
-  this->name.copy(nameStr, this->name.length(), 0);
+  auto length = this->name.length();
+  auto nameStr = (wchar_t*) calloc(length + 1, sizeof(wchar_t));
+  this->name.copy(nameStr, length, 0);
+
   this->dpName->dwSize = sizeof(DPNAME);
   this->dpName->dwFlags = 0;
   this->dpName->lpszShortName = nameStr;

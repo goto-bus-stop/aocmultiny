@@ -13,12 +13,11 @@ DPAddress::DPAddress (LPDIRECTPLAYLOBBY3A lobby, std::string ip)
 }
 
 void DPAddress::alloc () {
-  DPCOMPOUNDADDRESSELEMENT* addressElements =
-    (DPCOMPOUNDADDRESSELEMENT*)malloc(3 * sizeof(DPCOMPOUNDADDRESSELEMENT));
+  auto addressElements =
+    (DPCOMPOUNDADDRESSELEMENT*) malloc(3 * sizeof(DPCOMPOUNDADDRESSELEMENT));
   int elements = 0;
   void* address;
   DWORD addressSize = 0;
-  HRESULT hr;
 
   // TCP/IP service provider
   addressElements[0].guidDataType = DPAID_ServiceProvider;
@@ -31,7 +30,7 @@ void DPAddress::alloc () {
   addressElements[1].dwDataSize = this->ip.length() + 1;
   elements++;
 
-  hr = this->lobby->CreateCompoundAddress(addressElements, 2, NULL, &addressSize);
+  auto hr = this->lobby->CreateCompoundAddress(addressElements, 2, NULL, &addressSize);
   if (hr == DPERR_BUFFERTOOSMALL) {
     this->size = addressSize;
     address = malloc(addressSize);

@@ -17,7 +17,7 @@ DPLConnection::DPLConnection (DPAddress address, DPSessionDesc* sessionDesc, DPN
 }
 
 void DPLConnection::alloc () {
-  DPLCONNECTION* connection = (DPLCONNECTION*) malloc(sizeof(DPLCONNECTION));
+  auto connection = (DPLCONNECTION*) malloc(sizeof(DPLCONNECTION));
   connection->dwSize = sizeof(DPLCONNECTION);
   connection->dwFlags = this->sessionDesc->isHost() ?
     DPLCONNECTION_CREATESESSION : DPLCONNECTION_JOINSESSION;
