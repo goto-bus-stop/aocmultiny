@@ -44,6 +44,7 @@ void Lobby::host () {
  */
 void Lobby::join (string remoteIp) {
   dplib::DPAddress address (this->dpLobby, remoteIp);
+  this->launch(address, false);
   return;
 }
 
