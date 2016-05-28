@@ -50,7 +50,8 @@ void Lobby::join (string remoteIp) {
 
 GUID createGuid () {
   GUID guid;
-  CoCreateGuid(&guid);
+  // CoCreateGuid(&guid);
+  guid = { 0xABCDEF00, 0xFC90, 0x4ee1, { 0xAE, 0x5A, 0x63, 0xDA, 0xFA, 0x05, 0x59, 0x50 } };
   return guid;
 }
 
