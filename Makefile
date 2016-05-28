@@ -5,9 +5,9 @@ build: aocmultiny lib/dplayx.lib lib/dxguid.lib
 		-Wall \
 		-static \
 		-L ./lib \
-		aocmultiny/*.cpp aocmultiny/dplib/*.cpp \
+		aocmultiny/*.cpp aocmultiny/*/*.cpp \
 		-lole32 -loleaut32 \
-		-ldplayx -ldxguid
+		-ldplayx -ldxguid -lws2_32
 
 run: build
 	wine a.exe

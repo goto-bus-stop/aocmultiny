@@ -4,6 +4,7 @@
 #include <vector>
 #include "main.hpp"
 #include "Lobby.hpp"
+#include "irc/IRC.hpp"
 
 using namespace std;
 
@@ -13,10 +14,12 @@ void main (vector<string> params) {
   CoInitialize(NULL);
   wcout << "[main] Starting" << endl;
 
-  if (params[0] == "host") {
+  string action = params.size() > 0 ? params[0] : "";
+
+  if (action == "host") {
     Lobby lobby;
     lobby.host();
-  } else if (params[0] == "join") {
+  } else if (action == "join") {
     Lobby lobby;
     lobby.join({ 0 }, params[1]);
   }
