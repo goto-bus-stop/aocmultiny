@@ -9,11 +9,11 @@ namespace dplib {
 class DPName {
 
 private:
-  std::wstring name;
+  std::string name;
   DPNAME* dpName;
 
 public:
-  DPName (std::wstring name);
+  DPName (std::string name);
   ~DPName ();
   void alloc ();
   DPNAME* unwrap ();

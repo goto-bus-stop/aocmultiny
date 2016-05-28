@@ -9,13 +9,13 @@ class DPSessionDesc {
 
 private:
   GUID guidInstance;
-  std::wstring name;
-  std::wstring pass;
+  std::string name;
+  std::string pass;
   bool host;
   DPSESSIONDESC2* dpSessionDesc;
 
 public:
-  DPSessionDesc (GUID guidInstance, std::wstring sessionName, std::wstring sessionPass, bool host);
+  DPSessionDesc (GUID guidInstance, std::string sessionName, std::string sessionPass, bool host);
   ~DPSessionDesc ();
   bool isHost ();
 

@@ -123,8 +123,8 @@ bool Lobby::receiveMessage (DWORD appId) {
 
 void Lobby::launch (dplib::DPAddress address, bool isHosting) {
   auto guid = createGuid();
-  auto sessionDesc = new dplib::DPSessionDesc(guid, L"Session", L"", isHosting);
-  auto playerName = new dplib::DPName(L"My Name");
+  auto sessionDesc = new dplib::DPSessionDesc(guid, "Session", "", isHosting);
+  auto playerName = new dplib::DPName("My Name");
   auto connection = new dplib::DPLConnection(address, sessionDesc, playerName);
 
   auto receiveEvent = CreateEvent(NULL, false, false, NULL);

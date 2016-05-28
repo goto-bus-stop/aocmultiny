@@ -6,7 +6,7 @@
 namespace aocmultiny {
 namespace dplib {
 
-DPName::DPName (std::wstring name)
+DPName::DPName (std::string name)
     :
     name(name) {
   this->alloc();
@@ -16,13 +16,13 @@ void DPName::alloc () {
   this->dpName = (DPNAME*) malloc(sizeof(DPNAME));
 
   auto length = this->name.length();
-  auto nameStr = (wchar_t*) calloc(length + 1, sizeof(wchar_t));
+  auto nameStr = (char*) calloc(length + 1, sizeof(char));
   this->name.copy(nameStr, length, 0);
 
   this->dpName->dwSize = sizeof(DPNAME);
   this->dpName->dwFlags = 0;
-  this->dpName->lpszShortName = nameStr;
-  this->dpName->lpszLongName = nameStr;
+  this->dpName->lpszShortNameA = nameStr;
+  this->dpName->lpszLongNameA = nameStr;
 }
 
 DPNAME* DPName::unwrap () {
@@ -30,7 +30,7 @@ DPNAME* DPName::unwrap () {
 }
 
 DPName::~DPName () {
-  free(this->dpName->lpszLongName);
+  free(this->dpName->lpszLongNameA);
   free(this->dpName);
 }
 

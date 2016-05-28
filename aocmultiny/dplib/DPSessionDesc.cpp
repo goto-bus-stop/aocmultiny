@@ -16,7 +16,7 @@ wstring GUIDToString (GUID guid) {
   return str;
 }
 
-DPSessionDesc::DPSessionDesc (GUID guidInstance, wstring sessionName, wstring sessionPass, bool host)
+DPSessionDesc::DPSessionDesc (GUID guidInstance, string sessionName, string sessionPass, bool host)
     :
     guidInstance(guidInstance),
     name(sessionName),
@@ -39,7 +39,7 @@ void DPSessionDesc::alloc () {
   sessionDesc->dwMaxPlayers = 8;
   sessionDesc->dwCurrentPlayers = 0;
   if (host) {
-    sessionDesc->lpszSessionName = (wchar_t*) this->name.c_str();
+    sessionDesc->lpszSessionNameA = (char*) this->name.c_str();
   } else {
     sessionDesc->lpszSessionName = NULL;
   }
