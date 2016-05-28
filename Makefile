@@ -5,9 +5,11 @@ build: aocmultiny lib/dplayx.lib lib/dxguid.lib
 		-Wall \
 		-static \
 		-L ./lib \
-		aocmultiny/*.hpp aocmultiny/*.cpp aocmultiny/dplib/*.hpp aocmultiny/dplib/*.cpp \
+		aocmultiny/*.cpp aocmultiny/dplib/*.cpp \
 		-lole32 -loleaut32 \
 		-ldplayx -ldxguid
 
 run: build
 	wine a.exe
+
+.PHONY: build run
