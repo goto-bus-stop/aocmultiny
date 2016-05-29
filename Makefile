@@ -1,15 +1,25 @@
-# Requires DirectX SDK stuff to be symlinked into ./lib for now
-build: aocmultiny lib/dplayx.lib lib/dxguid.lib
-	i686-w64-mingw32-g++ \
-		-std=c++11 \
-		-Wall \
-		-static \
-		-L ./lib \
-		aocmultiny/*.cpp aocmultiny/*/*.cpp \
-		-lole32 -loleaut32 \
-		-ldplayx -ldxguid -lws2_32
+CC = i686-w64-mingw32-g++
+CFLAGS = -c -Wall -std=c++11
+LDFLAGS = -static -lole32 -loleaut32 -ldplayx -ldxguid -lws2_32
+SOURCE_DIR = src
+SOURCE_FILES = $(shell find $(SOURCE_DIR) -name *.cpp)
+LIBS = lib/dplayx.lib lib/dxguid.lib
+OBJECTS = $(SOURCE_FILES:.cpp=.o)
+BUILD_DIR = bin
+EXECUTABLE = a.exe
 
-run: build
+all: $(SOURCE_FILES) $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS) $(LIBS)
+	$(CC) -o $@ $(OBJECTS) $(LDFLAGS)
+
+.cpp.o:
+	$(CC) $(CFLAGS) $< -o $@
+
+run: a.exe
 	wine a.exe
 
-.PHONY: build run
+clean:
+	rm -rf $(OBJECTS) $(EXECUTABLE)
+
+.PHONY: clean run
