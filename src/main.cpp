@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "main.hpp"
 #include "Lobby.hpp"
+#include "cli/CLI.hpp"
 #include "irc/IRC.hpp"
 
 using namespace std;
@@ -27,23 +28,8 @@ void main (vector<string> params) {
   } else {
     wcout << "[main] IRC" << endl;
     auto irc = new irc::IRC("localhost");
-    irc->nick("AoCMulTiny");
-    irc->on({
-      { "NICK", [] (irc::IRC* irc, vector<string> params) {
-        wcout << "[main] NICK ok" << endl;
-      } },
-      { "433", [] (irc::IRC* irc, vector<string> params) {
-        wcout << "[main] Nickname is in use" << endl;
-      } }
-    });
-    irc->list();
-    irc->on("323", [] (irc::IRC* irc, vector<string> params) {
-      for_each(irc->channels.begin(), irc->channels.end(), [] (string channel) {
-        cout << channel << " ";
-      });
-      wcout << endl;
-    });
-    getchar();
+    auto cli = new cli::CLI(irc);
+    cli->start();
     delete irc;
   }
 
