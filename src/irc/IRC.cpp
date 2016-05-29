@@ -39,16 +39,18 @@ IRC::IRC (string host, int port)
     socket(INVALID_SOCKET),
     host(host),
     port(port),
-    channels(vector<string> ()),
     thread(0),
-    running(false) {
+    running(false),
+    channels(vector<string> ()) {
   this->attachDefaultHandlers();
   this->initWinSock();
   this->connect();
 }
 
 IRC::~IRC () {
-  this->disconnect();
+  if (this->running) {
+    this->disconnect();
+  }
 }
 
 void IRC::attachDefaultHandlers () {
@@ -133,6 +135,9 @@ void IRC::receive () {
   char buffer[MESSAGE_SIZE];
   memset(buffer, 0, MESSAGE_SIZE);
   int length = ::recv(this->socket, buffer, MESSAGE_SIZE, 0);
+  if (length == SOCKET_ERROR) {
+    return;
+  }
   string lines = buffer;
   istringstream stream (lines);
   string line;
