@@ -133,8 +133,17 @@ void IRC::receive () {
   char buffer[MESSAGE_SIZE];
   memset(buffer, 0, MESSAGE_SIZE);
   int length = ::recv(this->socket, buffer, MESSAGE_SIZE, 0);
-  auto message = this->parse(buffer);
-  this->execute(*message);
+  string lines = buffer;
+  istringstream stream (lines);
+  string line;
+  while (getline(stream, line)) {
+    // IRC uses \r\n, so trim final \r
+    if (line.find("\r") != string::npos) {
+      line = line.substr(0, line.size() - 1);
+    }
+    auto message = this->parse(line);
+    this->execute(*message);
+  }
 }
 
 Message* IRC::parse (string raw) {
