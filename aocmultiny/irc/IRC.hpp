@@ -1,5 +1,7 @@
+#include <functional>
 #include <string>
 #include <vector>
+#include <map>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
@@ -8,6 +10,10 @@ using std::vector;
 
 namespace aocmultiny {
 namespace irc {
+
+class IRC;
+
+typedef std::function<void(IRC*, vector<string>)> Handler;
 
 class Message {
 public:
@@ -23,10 +29,10 @@ private:
   SOCKET socket;
   string host;
   int port;
-  vector<string> channels;
-  vector<string> next_channels;
   int thread;
+  std::map<string, vector<Handler>> handlers;
 
+  void attachDefaultHandlers ();
   void initWinSock ();
   void send (string message);
   Message* parse (string raw);
@@ -43,14 +49,15 @@ public:
   void connect ();
   void disconnect ();
   void nick (string nick);
+
+  vector<string> channels;
   void list ();
   void join (string channel);
   void part (string channel);
 
+  void on (string command, Handler handler);
+  void on (std::map<string, Handler> handlers);
   void onJoinedChannel (string channel);
-  void onListStart ();
-  void onListEntry (string channel);
-  void onListEnd ();
 };
 
 }

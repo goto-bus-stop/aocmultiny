@@ -2,12 +2,13 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <sstream>
+#include <algorithm>
 #include <functional>
 #include <process.h>
 #include "IRC.hpp"
 
-using std::string;
-using std::vector;
+using namespace std;
 
 namespace aocmultiny {
 namespace irc {
@@ -15,26 +16,9 @@ namespace irc {
 // https://tools.ietf.org/html/rfc1459#section-2.3
 const int MESSAGE_SIZE = 512;
 
-typedef std::function<void(IRC*, vector<string>)> Handler;
-
 static string RPL_LISTSTART = "321";
 static string RPL_LIST = "322";
 static string RPL_LISTEND = "323";
-
-const std::map<string, Handler> handlers = {
-  { "JOIN", [] (IRC* irc, vector<string> params) {
-    irc->onJoinedChannel(params[0]);
-  } },
-  { RPL_LISTSTART, [] (IRC* irc, vector<string> params) {
-    irc->onListStart();
-  } },
-  { RPL_LIST, [] (IRC* irc, vector<string> params) {
-    irc->onListEntry(params[1]);
-  } },
-  { RPL_LISTEND, [] (IRC* irc, vector<string> params) {
-    irc->onListEnd();
-  } },
-};
 
 Message::Message (string command, string prefix, vector<string> params)
     :
@@ -58,6 +42,7 @@ IRC::IRC (string host, int port)
     channels(vector<string> ()),
     thread(0),
     running(false) {
+  this->attachDefaultHandlers();
   this->initWinSock();
   this->connect();
 }
@@ -66,19 +51,35 @@ IRC::~IRC () {
   this->disconnect();
 }
 
+void IRC::attachDefaultHandlers () {
+  this->on("JOIN", [this] (IRC* irc, vector<string> params) {
+    this->onJoinedChannel(params[0]);
+  });
+  auto next_channels = new vector<string>();
+  this->on(RPL_LISTSTART, [this, &next_channels] (IRC* irc, vector<string> params) {
+    next_channels = new vector<string>();
+  });
+  this->on(RPL_LIST, [this, &next_channels] (IRC* irc, vector<string> params) {
+    next_channels->push_back(params[1]);
+  });
+  this->on(RPL_LISTEND, [this, &next_channels] (IRC* irc, vector<string> params) {
+    this->channels = *next_channels;
+  });
+}
+
 void IRC::initWinSock () {
   WSADATA wsaData;
-  std::wcout << "[IRC::initWinSock] WSAStartup" << std::endl;
+  wcout << "[IRC::initWinSock] WSAStartup" << endl;
   int result = WSAStartup(MAKEWORD(2,2), &wsaData);
   if (result) {
-    std::wcout << ":(" << std::endl;
+    wcout << ":(" << endl;
     return;
   }
 }
 
 void IRC::connect () {
   const char* hostname = this->host.c_str();
-  const char* port = std::to_string(this->port).c_str();
+  const char* port = to_string(this->port).c_str();
   struct addrinfo* address = NULL;
   struct addrinfo hints;
   ZeroMemory(&hints, sizeof(hints));
@@ -86,16 +87,16 @@ void IRC::connect () {
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
 
-  std::wcout << "[IRC::connect] getaddrinfo " << hostname << ":" << port << std::endl;
+  wcout << "[IRC::connect] getaddrinfo " << hostname << ":" << port << endl;
   int result = getaddrinfo(hostname, port, &hints, &address);
   if (result) {
-    std::wcout << "[IRC::connect] Invalid host" << std::endl;
+    wcout << "[IRC::connect] Invalid host" << endl;
     return;
   }
 
   this->socket = ::socket(address->ai_family, address->ai_socktype, address->ai_protocol);
   if (this->socket == INVALID_SOCKET) {
-    std::wcout << "[IRC::connect] Could not connect to host" << std::endl;
+    wcout << "[IRC::connect] Could not connect to host" << endl;
     return;
   }
   result = ::connect(this->socket, address->ai_addr, (int) address->ai_addrlen);
@@ -116,10 +117,10 @@ void IRC::disconnect () {
 
 void IRC::send (string message) {
   string line = message + "\r\n";
-  std::cout << "[IRC::send] " << message << std::endl;
+  cout << "[IRC::send] " << message << endl;
   int result = ::send(this->socket, line.c_str(), line.size(), 0);
   if (!result) {
-    std::wcout << result << std::endl;
+    wcout << result << endl;
   }
 }
 
@@ -156,7 +157,7 @@ Message* IRC::parse (string raw) {
     } else {
       size_t pos1 = 0;
       size_t pos2;
-      while ((pos2 = raw.find(" ", pos1)) != std::string::npos) {
+      while ((pos2 = raw.find(" ", pos1)) != string::npos) {
         parameters.push_back(raw.substr(pos1, pos2 - pos1));
         pos1 = pos2 + 1;
         if (raw.substr(pos1, 1) == ":") {
@@ -175,12 +176,13 @@ Message* IRC::parse (string raw) {
 
 void IRC::execute (Message message) {
   try {
-    const auto& handler = handlers.at(message.command);
-    if (handler != NULL) {
+    const auto& handlers = this->handlers.at(message.command);
+    cout << "[IRC::execute] Handlers for " << message.command << endl;
+    for_each(handlers.begin(), handlers.end(), [this, &message] (Handler handler) {
       handler(this, message.params);
-    }
+    });
   } catch (std::out_of_range) {
-    std::cout << "[IRC::execute] Unrecognized command: " << message.command << std::endl;
+    cout << "[IRC::execute] Unrecognized command: " << message.command << endl;
   }
 }
 
@@ -200,21 +202,22 @@ void IRC::part (string channel) {
   this->send("PART " + channel);
 }
 
-void IRC::onJoinedChannel (string channel) {
-  std::cout << "[IRC::onJoinedChannel] " << channel << std::endl;
+void IRC::on (string command, Handler handler) {
+  try {
+    this->handlers[command].push_back(handler);
+  } catch (std::out_of_range) {
+    this->handlers[command] = { handler };
+  }
 }
 
-void IRC::onListStart () {
-  std::cout << "[IRC::onListStart]" << std::endl;
-  this->next_channels = vector<string> ();
+void IRC::on (map<string, Handler> events) {
+  for_each(events.begin(), events.end(), [this] (pair<string, Handler> entry) {
+    this->on(entry.first, entry.second);
+  });
 }
-void IRC::onListEntry (string channel) {
-  std::cout << "[IRC::onListEntry] " << channel << std::endl;
-  this->next_channels.push_back(channel);
-}
-void IRC::onListEnd () {
-  std::cout << "[IRC::onListEnd]" << std::endl;
-  this->channels = this->next_channels;
+
+void IRC::onJoinedChannel (string channel) {
+  cout << "[IRC::onJoinedChannel] " << channel << endl;
 }
 
 }
