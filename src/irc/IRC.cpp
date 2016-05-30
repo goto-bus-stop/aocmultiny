@@ -204,6 +204,18 @@ void IRC::nick (string nick) {
   this->send("NICK " + nick);
 }
 
+void IRC::user (string username, string hostname, string servername, string realname) {
+  this->send("USER " + username + " " + hostname + " " + servername + " :" + realname);
+}
+
+void IRC::user (string username, string realname) {
+  this->user(username, username, this->host, realname);
+}
+
+void IRC::user (string username) {
+  this->user(username, username);
+}
+
 void IRC::list () {
   this->send("LIST");
 }
@@ -214,6 +226,22 @@ void IRC::join (string channel) {
 
 void IRC::part (string channel) {
   this->send("PART " + channel);
+}
+
+void IRC::who (string channel) {
+  this->send("WHO " + channel);
+}
+
+void IRC::privmsg (string target, string message) {
+  this->send("PRIVMSG " + target + " :" + message);
+}
+
+void IRC::ctcp (string target, string message) {
+  this->privmsg(target, "\u0001" + message + "\u0001");
+}
+
+void IRC::action (string target, string message) {
+  this->ctcp(target, "ACTION " + message);
 }
 
 void IRC::on (string command, Handler handler) {

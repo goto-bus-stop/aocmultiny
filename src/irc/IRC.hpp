@@ -50,11 +50,19 @@ public:
   void connect ();
   void disconnect ();
   void nick (string nick);
+  void user (string username, string hostname, string servername, string realname);
+  void user (string username, string realname);
+  void user (string username);
 
   vector<string> channels;
   void list ();
   void join (string channel);
   void part (string channel);
+  void who (string channel);
+
+  void privmsg (string target, string message);
+  void action (string target, string message);
+  void ctcp (string target, string message);
 
   void on (string command, Handler handler);
   void on (std::map<string, Handler> handlers);
