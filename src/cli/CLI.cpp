@@ -31,6 +31,7 @@ void CLI::start () {
   std::getline(std::cin, line);
 
   this->irc->nick(line);
+  this->irc->user(line);
 
   this->irc->on("323", [this] (IRC* irc, vector<string> params) {
     stringstream room_names ("Rooms:");
