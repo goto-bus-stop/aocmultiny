@@ -42,8 +42,8 @@ void CLI::start () {
   });
 
   this->irc->on("JOIN", [this] (IRC* irc, vector<string> params) {
-    if (params[1] == "") {
-      string room_name = params[0].substr(1);
+    if (params.size() == 1 || params[1] == "") {
+      auto room_name = params[0].substr(1);
       this->current_room = room_name;
       this->println("Joined room \"" + room_name + "\"");
     } else {
