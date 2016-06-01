@@ -16,7 +16,7 @@ Lobby::Lobby ()
     NULL,
     CLSCTX_INPROC_SERVER,
     IID_IDirectPlay4A,
-    (void**)&this->dp
+    (void**) &this->dp
   );
 
   this->create();
@@ -28,7 +28,7 @@ HRESULT Lobby::create () {
     NULL,
     CLSCTX_INPROC_SERVER,
     IID_IDirectPlayLobby3A,
-    (void**)&this->dpLobby
+    (void**) &this->dpLobby
   );
   return hr;
 }
@@ -37,21 +37,23 @@ HRESULT Lobby::create () {
  * Host a game.
  */
 void Lobby::host () {
-  dplib::DPAddress address (this->dpLobby, "");
   CoCreateGuid(&this->guid);
   this->isHosting = true;
-  this->launch(address);
+  this->hostIp = "";
   return;
 }
 
 /**
  * Join a game.
  */
-void Lobby::join (GUID gameId, string remoteIp) {
-  this->guid = gameId;
-  dplib::DPAddress address (this->dpLobby, remoteIp);
-  this->launch(address);
+void Lobby::join (GUID sessionId, string remoteIp) {
+  this->guid = sessionId;
+  this->hostIp = remoteIp;
   return;
+}
+
+GUID Lobby::getSessionGUID () {
+  return this->guid;
 }
 
 bool Lobby::receiveMessage (DWORD appId) {
@@ -120,7 +122,8 @@ bool Lobby::receiveMessage (DWORD appId) {
   return true;
 }
 
-void Lobby::launch (dplib::DPAddress address) {
+void Lobby::launch () {
+  dplib::DPAddress address (this->dpLobby, this->hostIp);
   auto sessionDesc = new dplib::DPSessionDesc(this->guid, "Session", "", this->isHosting);
   auto playerName = new dplib::DPName("My Name");
   auto connection = new dplib::DPLConnection(address, sessionDesc, playerName);

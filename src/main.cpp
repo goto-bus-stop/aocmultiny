@@ -20,11 +20,13 @@ void main (vector<string> params) {
   string action = params.size() > 0 ? params[0] : "";
 
   if (action == "host") {
-    Lobby lobby;
-    lobby.host();
+    auto lobby = new Lobby();
+    lobby->host();
+    lobby->launch();
   } else if (action == "join") {
-    Lobby lobby;
-    lobby.join({ 0 }, params[1]);
+    auto lobby = new Lobby();
+    lobby->join({ 0 }, params[1]);
+    lobby->launch();
   } else {
     wcout << "[main] IRC" << endl;
     auto irc = new irc::IRC("localhost");
