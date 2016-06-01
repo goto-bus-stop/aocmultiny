@@ -160,6 +160,8 @@ Message* IRC::parse (string raw) {
   string command = "";
   vector<string> parameters;
 
+  cout << "[IRC::parse] " << raw << endl;
+
   if (raw[0] == ':') {
     int end = raw.find(" ");
     prefix = raw.substr(0, end);

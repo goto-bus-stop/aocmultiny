@@ -154,6 +154,7 @@ void Lobby::launch () {
     }
   }
 
+  wcout << "[Lobby::launch] Cleaning up" << endl;
   delete connection;
   delete playerName;
   delete sessionDesc;
