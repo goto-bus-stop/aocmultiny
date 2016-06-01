@@ -10,11 +10,13 @@ private:
   GUID guid;
   bool isHosting;
   std::string hostIp;
+  std::string playerName;
 
   HRESULT create ();
   bool receiveMessage (DWORD appId);
 
 public:
+  Lobby (std::string playerName);
   Lobby ();
 
   void host ();

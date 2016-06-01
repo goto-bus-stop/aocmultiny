@@ -9,8 +9,14 @@ namespace aocmultiny {
 
 Lobby::Lobby ()
     :
+    Lobby("Player") {
+}
+
+Lobby::Lobby (string playerName)
+    :
     guid({ 0 }),
-    isHosting(false) {
+    isHosting(false),
+    playerName(playerName) {
   CoCreateInstance(
     CLSID_DirectPlay,
     NULL,
@@ -127,7 +133,7 @@ bool Lobby::receiveMessage (DWORD appId) {
 void Lobby::launch () {
   dplib::DPAddress address (this->dpLobby, this->hostIp);
   auto sessionDesc = new dplib::DPSessionDesc(this->guid, "Session", "", this->isHosting);
-  auto playerName = new dplib::DPName("My Name");
+  auto playerName = new dplib::DPName(this->playerName);
   auto connection = new dplib::DPLConnection(address, sessionDesc, playerName);
 
   auto receiveEvent = CreateEvent(NULL, false, false, NULL);

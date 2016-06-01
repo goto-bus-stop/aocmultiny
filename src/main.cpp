@@ -19,11 +19,11 @@ void main (vector<string> params) {
   string action = params.size() > 0 ? params[0] : "";
 
   if (action == "host") {
-    auto lobby = new Lobby();
+    auto lobby = new Lobby("Hosting");
     lobby->host();
     lobby->launch();
   } else if (action == "join") {
-    auto lobby = new Lobby();
+    auto lobby = new Lobby("Joining");
     lobby->join({ 0 }, params[1]);
     lobby->launch();
   } else {
