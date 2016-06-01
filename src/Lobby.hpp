@@ -22,6 +22,8 @@ public:
   GUID getSessionGUID ();
 
   void launch ();
+  EventListeners<> onConnectSucceeded;
+  EventListeners<> onAppTerminated;
 };
 
 }

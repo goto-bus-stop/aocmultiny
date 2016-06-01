@@ -84,7 +84,8 @@ bool Lobby::receiveMessage (DWORD appId) {
   switch (sysMsg->dwType) {
   case DPLSYS_APPTERMINATED:
     wcout << "[Lobby::receiveMessage] received APPTERMINATED message" << endl
-              << "Press <enter> to exit." << endl;
+          << "Press <enter> to exit." << endl;
+    this->onAppTerminated.emit();
     return false;
   case DPLSYS_GETPROPERTY:
     wcout << "[Lobby::receiveMessage] received GETPROPERTY message" << endl;
@@ -112,6 +113,7 @@ bool Lobby::receiveMessage (DWORD appId) {
     break;
   case DPLSYS_DPLAYCONNECTSUCCEEDED:
     wcout << "[Lobby::receiveMessage] received CONNECTSUCCEEDED message!" << endl;
+    this->onConnectSucceeded.emit();
     break;
   default:
     wcout << "[Lobby::receiveMessage] received unknown message: " << (int) sysMsg->dwType << endl;
