@@ -28,6 +28,7 @@ public:
 class IRC {
 private:
   SOCKET socket;
+  string buffer;
   string host;
   int port;
   int thread;

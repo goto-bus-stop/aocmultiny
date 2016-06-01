@@ -138,12 +138,16 @@ void IRC::receive () {
   if (length == SOCKET_ERROR) {
     return;
   }
-  string lines = buffer;
+  string lines = this->buffer + buffer;
+  this->buffer = "";
   istringstream stream (lines);
   string line;
   while (getline(stream, line)) {
     // IRC uses \r\n, so trim final \r
-    if (line.find("\r") != string::npos) {
+    if (line.find("\r") == string::npos) {
+      this->buffer = line;
+      return;
+    } else {
       line = line.substr(0, line.size() - 1);
     }
     auto message = this->parse(line);
