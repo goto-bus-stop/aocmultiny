@@ -244,6 +244,10 @@ void IRC::ctcp (string target, string message) {
   this->privmsg(target, "\u0001" + message + "\u0001");
 }
 
+bool IRC::is_ctcp (string message) {
+  return message.front() == '\u0001' && message.back() == '\u0001';
+}
+
 void IRC::action (string target, string message) {
   this->ctcp(target, "ACTION " + message);
 }
