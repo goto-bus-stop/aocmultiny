@@ -160,6 +160,8 @@ Message* IRC::parse (string raw) {
   string command = "";
   vector<string> parameters;
 
+  cout << "[IRC::parse] " << raw << endl;
+
   if (raw[0] == ':') {
     int end = raw.find(" ");
     prefix = raw.substr(0, end);
@@ -242,6 +244,10 @@ void IRC::privmsg (string target, string message) {
 
 void IRC::ctcp (string target, string message) {
   this->privmsg(target, "\u0001" + message + "\u0001");
+}
+
+bool IRC::is_ctcp (string message) {
+  return message.front() == '\u0001' && message.back() == '\u0001';
 }
 
 void IRC::action (string target, string message) {

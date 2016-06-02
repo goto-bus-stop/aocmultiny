@@ -9,16 +9,23 @@ private:
   LPDIRECTPLAYLOBBY3A dpLobby = NULL;
   GUID guid;
   bool isHosting;
+  std::string hostIp;
+  std::string playerName;
 
   HRESULT create ();
-  void launch (dplib::DPAddress address);
   bool receiveMessage (DWORD appId);
 
 public:
+  Lobby (std::string playerName);
   Lobby ();
 
   void host ();
-  void join (GUID gameId, std::string remoteIp);
+  void join (GUID sessionId, std::string hostIp);
+  GUID getSessionGUID ();
+
+  void launch ();
+  EventListeners<> onConnectSucceeded;
+  EventListeners<> onAppTerminated;
 };
 
 }

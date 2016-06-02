@@ -64,6 +64,7 @@ public:
   void privmsg (string target, string message);
   void action (string target, string message);
   void ctcp (string target, string message);
+  bool is_ctcp (string message);
 
   void on (string command, Handler handler);
   void on (std::map<string, Handler> handlers);

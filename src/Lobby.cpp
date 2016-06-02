@@ -9,14 +9,20 @@ namespace aocmultiny {
 
 Lobby::Lobby ()
     :
+    Lobby("Player") {
+}
+
+Lobby::Lobby (string playerName)
+    :
     guid({ 0 }),
-    isHosting(false) {
+    isHosting(false),
+    playerName(playerName) {
   CoCreateInstance(
     CLSID_DirectPlay,
     NULL,
     CLSCTX_INPROC_SERVER,
     IID_IDirectPlay4A,
-    (void**)&this->dp
+    (void**) &this->dp
   );
 
   this->create();
@@ -28,7 +34,7 @@ HRESULT Lobby::create () {
     NULL,
     CLSCTX_INPROC_SERVER,
     IID_IDirectPlayLobby3A,
-    (void**)&this->dpLobby
+    (void**) &this->dpLobby
   );
   return hr;
 }
@@ -37,21 +43,23 @@ HRESULT Lobby::create () {
  * Host a game.
  */
 void Lobby::host () {
-  dplib::DPAddress address (this->dpLobby, "");
   CoCreateGuid(&this->guid);
   this->isHosting = true;
-  this->launch(address);
+  this->hostIp = "";
   return;
 }
 
 /**
  * Join a game.
  */
-void Lobby::join (GUID gameId, string remoteIp) {
-  this->guid = gameId;
-  dplib::DPAddress address (this->dpLobby, remoteIp);
-  this->launch(address);
+void Lobby::join (GUID sessionId, string remoteIp) {
+  this->guid = sessionId;
+  this->hostIp = remoteIp;
   return;
+}
+
+GUID Lobby::getSessionGUID () {
+  return this->guid;
 }
 
 bool Lobby::receiveMessage (DWORD appId) {
@@ -82,7 +90,8 @@ bool Lobby::receiveMessage (DWORD appId) {
   switch (sysMsg->dwType) {
   case DPLSYS_APPTERMINATED:
     wcout << "[Lobby::receiveMessage] received APPTERMINATED message" << endl
-              << "Press <enter> to exit." << endl;
+          << "Press <enter> to exit." << endl;
+    this->onAppTerminated.emit();
     return false;
   case DPLSYS_GETPROPERTY:
     wcout << "[Lobby::receiveMessage] received GETPROPERTY message" << endl;
@@ -110,6 +119,7 @@ bool Lobby::receiveMessage (DWORD appId) {
     break;
   case DPLSYS_DPLAYCONNECTSUCCEEDED:
     wcout << "[Lobby::receiveMessage] received CONNECTSUCCEEDED message!" << endl;
+    this->onConnectSucceeded.emit();
     break;
   default:
     wcout << "[Lobby::receiveMessage] received unknown message: " << (int) sysMsg->dwType << endl;
@@ -120,9 +130,10 @@ bool Lobby::receiveMessage (DWORD appId) {
   return true;
 }
 
-void Lobby::launch (dplib::DPAddress address) {
+void Lobby::launch () {
+  dplib::DPAddress address (this->dpLobby, this->hostIp);
   auto sessionDesc = new dplib::DPSessionDesc(this->guid, "Session", "", this->isHosting);
-  auto playerName = new dplib::DPName("My Name");
+  auto playerName = new dplib::DPName(this->playerName);
   auto connection = new dplib::DPLConnection(address, sessionDesc, playerName);
 
   auto receiveEvent = CreateEvent(NULL, false, false, NULL);
@@ -143,6 +154,7 @@ void Lobby::launch (dplib::DPAddress address) {
     }
   }
 
+  wcout << "[Lobby::launch] Cleaning up" << endl;
   delete connection;
   delete playerName;
   delete sessionDesc;
