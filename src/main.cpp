@@ -1,11 +1,11 @@
 #include <map>
 #include <string>
-#include <sstream>
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include "main.hpp"
 #include "Lobby.hpp"
+#include "cli/CLI.hpp"
 #include "irc/IRC.hpp"
 
 using namespace std;
@@ -19,31 +19,18 @@ void main (vector<string> params) {
   string action = params.size() > 0 ? params[0] : "";
 
   if (action == "host") {
-    Lobby lobby;
-    lobby.host();
+    auto lobby = new Lobby("Hosting");
+    lobby->host();
+    lobby->launch();
   } else if (action == "join") {
-    Lobby lobby;
-    lobby.join({ 0 }, params[1]);
+    auto lobby = new Lobby("Joining");
+    lobby->join({ 0 }, params[1]);
+    lobby->launch();
   } else {
     wcout << "[main] IRC" << endl;
     auto irc = new irc::IRC("localhost");
-    irc->nick("AoCMulTiny");
-    irc->on({
-      { "NICK", [] (irc::IRC* irc, vector<string> params) {
-        wcout << "[main] NICK ok" << endl;
-      } },
-      { "433", [] (irc::IRC* irc, vector<string> params) {
-        wcout << "[main] Nickname is in use" << endl;
-      } }
-    });
-    irc->list();
-    irc->on("323", [] (irc::IRC* irc, vector<string> params) {
-      for_each(irc->channels.begin(), irc->channels.end(), [] (string channel) {
-        cout << channel << " ";
-      });
-      wcout << endl;
-    });
-    getchar();
+    auto cli = new cli::CLI(irc);
+    cli->start();
     delete irc;
   }
 
@@ -52,16 +39,6 @@ void main (vector<string> params) {
   CoUninitialize();
 }
 
-}
-
-vector<string> split(const string &s, char delim) {
-  stringstream ss (s);
-  string item;
-  vector<std::string> elems;
-  while (getline(ss, item, delim)) {
-    elems.push_back(move(item));
-  }
-  return elems;
 }
 
 int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR cmdLine, int showCmd) {
