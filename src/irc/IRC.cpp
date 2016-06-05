@@ -27,9 +27,10 @@ Message::Message (string command, string prefix, vector<string> params)
     params(params) {
 }
 
-void receiveThread (void* client) {
-  while (((IRC*) client)->running) {
-    ((IRC*) client)->receive();
+void receiveThread (void* data) {
+  auto client = (IRC*) data;
+  while (client->running) {
+    client->receive();
   }
   _endthread();
 }
@@ -54,17 +55,17 @@ IRC::~IRC () {
 }
 
 void IRC::attachDefaultHandlers () {
-  this->on("JOIN", [this] (IRC* irc, vector<string> params) {
+  this->on("JOIN", [this] (auto irc, auto params) {
     this->onJoinedChannel(params[0]);
   });
   auto next_channels = new vector<string>();
-  this->on(RPL_LISTSTART, [this, &next_channels] (IRC* irc, vector<string> params) {
+  this->on(RPL_LISTSTART, [this, &next_channels] (auto irc, auto params) {
     next_channels = new vector<string>();
   });
-  this->on(RPL_LIST, [this, &next_channels] (IRC* irc, vector<string> params) {
+  this->on(RPL_LIST, [this, &next_channels] (auto irc, auto params) {
     next_channels->push_back(params[1]);
   });
-  this->on(RPL_LISTEND, [this, &next_channels] (IRC* irc, vector<string> params) {
+  this->on(RPL_LISTEND, [this, &next_channels] (auto irc, auto params) {
     this->channels = *next_channels;
   });
 }
@@ -72,7 +73,7 @@ void IRC::attachDefaultHandlers () {
 void IRC::initWinSock () {
   WSADATA wsaData;
   wcout << "[IRC::initWinSock] WSAStartup" << endl;
-  int result = WSAStartup(MAKEWORD(2,2), &wsaData);
+  auto result = WSAStartup(MAKEWORD(2,2), &wsaData);
   if (result) {
     wcout << ":(" << endl;
     return;
@@ -80,8 +81,8 @@ void IRC::initWinSock () {
 }
 
 void IRC::connect () {
-  const char* hostname = this->host.c_str();
-  const char* port = to_string(this->port).c_str();
+  const auto hostname = this->host.c_str();
+  const auto port = to_string(this->port).c_str();
   struct addrinfo* address = NULL;
   struct addrinfo hints;
   ZeroMemory(&hints, sizeof(hints));
@@ -90,7 +91,7 @@ void IRC::connect () {
   hints.ai_protocol = IPPROTO_TCP;
 
   wcout << "[IRC::connect] getaddrinfo " << hostname << ":" << port << endl;
-  int result = getaddrinfo(hostname, port, &hints, &address);
+  auto result = getaddrinfo(hostname, port, &hints, &address);
   if (result) {
     wcout << "[IRC::connect] Invalid host" << endl;
     return;
@@ -118,9 +119,9 @@ void IRC::disconnect () {
 }
 
 void IRC::send (string message) {
-  string line = message + "\r\n";
+  auto line = message + "\r\n";
   cout << "[IRC::send] " << message << endl;
-  int result = ::send(this->socket, line.c_str(), line.size(), 0);
+  auto result = ::send(this->socket, line.c_str(), line.size(), 0);
   if (!result) {
     wcout << result << endl;
   }
@@ -134,11 +135,11 @@ void IRC::startReceiveThread () {
 void IRC::receive () {
   char buffer[MESSAGE_SIZE];
   memset(buffer, 0, MESSAGE_SIZE);
-  int length = ::recv(this->socket, buffer, MESSAGE_SIZE, 0);
+  auto length = ::recv(this->socket, buffer, MESSAGE_SIZE, 0);
   if (length == SOCKET_ERROR) {
     return;
   }
-  string lines = this->buffer + buffer;
+  auto lines = this->buffer + buffer;
   this->buffer = "";
   istringstream stream (lines);
   string line;
@@ -198,9 +199,9 @@ void IRC::execute (Message message) {
   try {
     const auto& handlers = this->handlers.at(message.command);
     cout << "[IRC::execute] Handlers for " << message.command << endl;
-    for_each(handlers.begin(), handlers.end(), [this, &message] (Handler handler) {
+    for (auto handler : handlers) {
       handler(this, message.params);
-    });
+    }
   } catch (std::out_of_range) {
     cout << "[IRC::execute] Unrecognized command: " << message.command << endl;
   }
@@ -263,9 +264,9 @@ void IRC::on (string command, Handler handler) {
 }
 
 void IRC::on (map<string, Handler> events) {
-  for_each(events.begin(), events.end(), [this] (pair<string, Handler> entry) {
+  for (auto entry : events) {
     this->on(entry.first, entry.second);
-  });
+  }
 }
 
 void IRC::onJoinedChannel (string channel) {

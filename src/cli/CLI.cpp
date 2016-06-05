@@ -15,7 +15,7 @@ using aocmultiny::Lobby;
 using aocmultiny::irc::IRC;
 
 namespace std {
-  string to_string (GUID g) {
+  auto to_string (GUID g) {
     // so beautiful
     wchar_t* wchr = (wchar_t*) calloc(50, sizeof(wchar_t));
     StringFromGUID2(g, wchr, 50);
@@ -50,15 +50,15 @@ void CLI::start () {
 
   auto lobby = new Lobby(player_name);
 
-  this->irc->on("323", [this] (IRC* irc, vector<string> params) {
+  this->irc->on("323", [this] (auto irc, auto params) {
     stringstream room_names ("Rooms:");
-    for_each(irc->channels.begin(), irc->channels.end(), [&room_names] (string channel) {
+    for (auto channel : irc->channels) {
       room_names << channel.substr(1) << " ";
-    });
+    }
     this->println(room_names.str());
   });
 
-  this->irc->on("JOIN", [this] (IRC* irc, vector<string> params) {
+  this->irc->on("JOIN", [this] (auto irc, auto params) {
     if (params.size() == 1 || params[1] == "") {
       auto room_name = params[0].substr(1);
       this->current_room = room_name;
@@ -75,7 +75,7 @@ void CLI::start () {
     }
   });
 
-  this->irc->on("PRIVMSG", [this, lobby] (IRC* irc, vector<string> params) {
+  this->irc->on("PRIVMSG", [this, lobby] (auto irc, auto params) {
     auto action = params.back();
     if (this->irc->is_ctcp(action)) {
       auto ctcp = split(action.substr(1, -1), ' ');
