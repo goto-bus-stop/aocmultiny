@@ -65,7 +65,6 @@ GUID Lobby::getSessionGUID () {
 bool Lobby::receiveMessage (DWORD appId) {
   DWORD messageFlags;
   DWORD dataSize = 0;
-  DWORD responseSize = 0;
   auto hr = this->dpLobby->ReceiveLobbyMessage(0, appId, &messageFlags, NULL, &dataSize);
   if (hr != DPERR_BUFFERTOOSMALL) {
     wcout << "[Lobby::receiveMessage] Error: should be BUFFERTOOSMALL" << endl;
@@ -84,8 +83,6 @@ bool Lobby::receiveMessage (DWORD appId) {
     return true;
   }
   auto sysMsg = reinterpret_cast<DPLMSG_SYSTEMMESSAGE*>(data);
-  DPLMSG_GETPROPERTY* getPropMsg;
-  DPLMSG_GETPROPERTYRESPONSE* getPropRes;
   wcout << "[Lobby::receiveMessage] received SYSTEMMESSAGE, processing" << endl;
   switch (sysMsg->dwType) {
   case DPLSYS_APPTERMINATED:
@@ -93,11 +90,11 @@ bool Lobby::receiveMessage (DWORD appId) {
           << "Press <enter> to exit." << endl;
     this->onAppTerminated.emit();
     return false;
-  case DPLSYS_GETPROPERTY:
+  case DPLSYS_GETPROPERTY: {
     wcout << "[Lobby::receiveMessage] received GETPROPERTY message" << endl;
-    getPropMsg = (DPLMSG_GETPROPERTY*) data;
-    responseSize = sizeof(DPLMSG_GETPROPERTYRESPONSE);
-    getPropRes = (DPLMSG_GETPROPERTYRESPONSE*) malloc(responseSize);
+    auto getPropMsg = (DPLMSG_GETPROPERTY*) data;
+    auto responseSize = sizeof(DPLMSG_GETPROPERTYRESPONSE);
+    auto getPropRes = (DPLMSG_GETPROPERTYRESPONSE*) malloc(responseSize);
     getPropRes->dwType = DPLSYS_GETPROPERTYRESPONSE;
     getPropRes->dwRequestID = getPropMsg->dwRequestID;
     getPropRes->guidPlayer = getPropMsg->guidPlayer;
@@ -108,6 +105,7 @@ bool Lobby::receiveMessage (DWORD appId) {
     wcout << "[Lobby::receiveMessage] responding to unknown GETPROPERTY message" << endl;
     this->dpLobby->SendLobbyMessage(0, appId, getPropRes, responseSize);
     break;
+  }
   case DPLSYS_NEWSESSIONHOST:
     wcout << "[Lobby::receiveMessage] received NEWSESSIONHOST message" << endl;
     break;

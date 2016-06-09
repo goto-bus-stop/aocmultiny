@@ -6,7 +6,7 @@ namespace gui {
 MainFrame::MainFrame (const wxString& title)
     :
     wxFrame(NULL, wxID_ANY, title) {
-  wxMenu *menuFile = new wxMenu;
+  auto menuFile = new wxMenu;
   menuFile->Append(
     101,
     wxT("&Hello...\tCtrl-H"),
@@ -14,11 +14,12 @@ MainFrame::MainFrame (const wxString& title)
   );
   menuFile->AppendSeparator();
   menuFile->Append(wxID_EXIT);
-  wxMenu *menuHelp = new wxMenu;
+  auto menuHelp = new wxMenu;
   menuHelp->Append(wxID_ABOUT);
-  wxMenuBar *menuBar = new wxMenuBar;
+  auto menuBar = new wxMenuBar;
   menuBar->Append(menuFile, wxT("&File"));
   menuBar->Append(menuHelp, wxT("&Help"));
+
   this->SetMenuBar(menuBar);
   this->CreateStatusBar();
   this->SetStatusText(wxT("Welcome to wxWidgets!"));
