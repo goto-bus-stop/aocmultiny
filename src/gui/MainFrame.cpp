@@ -22,16 +22,14 @@ MainFrame::MainFrame (const wxString& title)
   this->SetMenuBar(menuBar);
   this->CreateStatusBar();
   this->SetStatusText(wxT("Welcome to wxWidgets!"));
-
-  this->inputUsername();
 }
 
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
-  EVT_MENU(wxID_EXIT, MainFrame::OnExit)
-  EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
+  EVT_MENU(wxID_EXIT, MainFrame::onExit)
+  EVT_MENU(wxID_ABOUT, MainFrame::onAbout)
 wxEND_EVENT_TABLE()
 
-void MainFrame::OnAbout (wxCommandEvent& event) {
+void MainFrame::onAbout (wxCommandEvent& event) {
   wxMessageBox(
     wxT("This is a wxWidgets' Hello world sample"),
     wxT("About Hello World"),
@@ -39,19 +37,12 @@ void MainFrame::OnAbout (wxCommandEvent& event) {
   );
 }
 
-void MainFrame::OnHello (wxCommandEvent& event) {
+void MainFrame::onHello (wxCommandEvent& event) {
   wxLogMessage(wxT("Hello world from wxWidgets!"));
 }
 
-void MainFrame::OnExit (wxCommandEvent& event) {
+void MainFrame::onExit (wxCommandEvent& event) {
   this->Close(true);
-}
-
-void MainFrame::inputUsername () {
-  wxTextEntryDialog dialog (this, wxT("Username"), wxGetTextFromUserPromptStr, wxEmptyString);
-
-  dialog.ShowModal();
-  std::cout << "Username: " << dialog.GetValue() << std::endl;
 }
 
 }

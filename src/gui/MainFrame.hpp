@@ -10,11 +10,9 @@ public:
 protected:
   wxDECLARE_EVENT_TABLE();
 private:
-  void OnHello (wxCommandEvent& event);
-  void OnExit (wxCommandEvent& event);
-  void OnAbout (wxCommandEvent& event);
-
-  void inputUsername ();
+  void onHello (wxCommandEvent& event);
+  void onExit (wxCommandEvent& event);
+  void onAbout (wxCommandEvent& event);
 };
 
 }
