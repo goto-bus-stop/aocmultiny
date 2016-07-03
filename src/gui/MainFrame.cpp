@@ -1,5 +1,8 @@
 #include "MainFrame.hpp"
 
+using std::string;
+using std::vector;
+
 namespace aocmultiny {
 namespace gui {
 
@@ -20,6 +23,8 @@ MainFrame::MainFrame (const wxString& title)
   menuBar->Append(menuFile, wxT("&File"));
   menuBar->Append(menuHelp, wxT("&Help"));
 
+  this->gameList = new wxListBox(this, wxID_ANY);
+
   this->SetMenuBar(menuBar);
   this->CreateStatusBar();
   this->SetStatusText(wxT("Welcome to wxWidgets!"));
@@ -29,6 +34,15 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
   EVT_MENU(wxID_EXIT, MainFrame::onExit)
   EVT_MENU(wxID_ABOUT, MainFrame::onAbout)
 wxEND_EVENT_TABLE()
+
+void MainFrame::setRooms (vector<string> room_names) {
+  this->gameList->Clear();
+  wxArrayString items;
+  for (auto name : room_names) {
+    items.Add(name);
+  }
+  this->gameList->InsertItems(items, 0);
+}
 
 void MainFrame::onAbout (wxCommandEvent& event) {
   wxMessageBox(
