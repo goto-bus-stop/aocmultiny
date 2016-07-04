@@ -1,7 +1,10 @@
 #pragma once
-#include <string>
 #include <vector>
 #include <wx/wx.h>
+#include <wx/listctrl.h>
+#include "../irc/Channel.hpp"
+
+using aocmultiny::irc::Channel;
 
 namespace aocmultiny {
 namespace gui {
@@ -9,11 +12,11 @@ namespace gui {
 class MainFrame: public wxFrame {
 public:
   MainFrame (const wxString& title);
-  void setRooms (std::vector<std::string> room_names);
+  void setRooms (std::vector<Channel*> rooms);
 protected:
   wxDECLARE_EVENT_TABLE();
 private:
-  wxListBox* gameList;
+  wxListView* gameList;
 
   void onHello (wxCommandEvent& event);
   void onExit (wxCommandEvent& event);

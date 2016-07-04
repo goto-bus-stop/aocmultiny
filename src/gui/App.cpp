@@ -26,9 +26,9 @@ bool App::OnInit () {
 
   frame->Show(true);
 
-  this->irc->on("323", [frame] (IRC* irc, vector<string> params) {
-    frame->setRooms(irc->channels);
-  });
+  this->irc->onChannelList += [frame] (auto channels) {
+    frame->setRooms(channels);
+  };
 
   this->irc->list();
 

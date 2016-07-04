@@ -1,10 +1,20 @@
 #include "MainFrame.hpp"
 
 using std::string;
+using std::to_string;
 using std::vector;
+
+using aocmultiny::irc::Channel;
 
 namespace aocmultiny {
 namespace gui {
+
+wxListItem createListItem (int id, string content) {
+  wxListItem item;
+  item.SetId(id);
+  item.SetText(content);
+  return item;
+}
 
 MainFrame::MainFrame (const wxString& title)
     :
@@ -23,7 +33,10 @@ MainFrame::MainFrame (const wxString& title)
   menuBar->Append(menuFile, wxT("&File"));
   menuBar->Append(menuHelp, wxT("&Help"));
 
-  this->gameList = new wxListBox(this, wxID_ANY);
+  this->gameList = new wxListView(this, wxID_ANY);
+  this->gameList->InsertColumn(0, createListItem(0, "Room"));
+  this->gameList->InsertColumn(1, createListItem(1, "Players"));
+  this->gameList->InsertColumn(2, createListItem(2, "Description"));
 
   this->SetMenuBar(menuBar);
   this->CreateStatusBar();
@@ -35,13 +48,12 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
   EVT_MENU(wxID_ABOUT, MainFrame::onAbout)
 wxEND_EVENT_TABLE()
 
-void MainFrame::setRooms (vector<string> room_names) {
-  this->gameList->Clear();
-  wxArrayString items;
-  for (auto name : room_names) {
-    items.Add(name);
+void MainFrame::setRooms (vector<Channel*> rooms) {
+  for (auto room : rooms) {
+    auto index = this->gameList->InsertItem(0, room->name);
+    this->gameList->SetItem(index, 1, to_string(room->members_count));
+    this->gameList->SetItem(index, 2, room->topic);
   }
-  this->gameList->InsertItems(items, 0);
 }
 
 void MainFrame::onAbout (wxCommandEvent& event) {

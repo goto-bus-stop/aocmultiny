@@ -7,6 +7,7 @@
 #include <functional>
 #include <process.h>
 #include "IRC.hpp"
+#include "Channel.hpp"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ IRC::IRC (string host, int port)
     port(port),
     thread(0),
     running(false),
-    channels(vector<string> ()) {
+    channels(vector<Channel*> ()) {
   this->attachDefaultHandlers();
   this->initWinSock();
   this->connect();
@@ -58,15 +59,24 @@ void IRC::attachDefaultHandlers () {
   this->on("JOIN", [this] (auto irc, auto params) {
     this->onJoinedChannel(params[0]);
   });
-  auto next_channels = new vector<string>();
-  this->on(RPL_LISTSTART, [this, &next_channels] (auto irc, auto params) {
-    next_channels = new vector<string>();
+  this->on(RPL_LISTSTART, [this] (auto irc, auto params) {
+    this->next_channels.clear();
   });
-  this->on(RPL_LIST, [this, &next_channels] (auto irc, auto params) {
-    next_channels->push_back(params[1]);
+  this->on(RPL_LIST, [this] (auto irc, auto params) {
+    auto members_count = params.size() > 2 ? stoi(params[2]) : 0;
+    auto topic = params.size() > 3 ? params[3] : "";
+    this->next_channels.push_back(
+      new Channel(irc, params[1], members_count, topic)
+    );
   });
-  this->on(RPL_LISTEND, [this, &next_channels] (auto irc, auto params) {
-    this->channels = *next_channels;
+  this->on(RPL_LISTEND, [this] (auto, auto) {
+    auto prev_channels = this->channels;
+    this->channels = this->next_channels;
+    for (auto channel : prev_channels) {
+      delete channel;
+    }
+    this->next_channels.clear();
+    this->onChannelList.emit(this->channels);
   });
 }
 
@@ -225,6 +235,16 @@ void IRC::user (string username) {
 
 void IRC::list () {
   this->send("LIST");
+}
+
+Channel* IRC::channel (string name) {
+  for (auto channel : this->channels) {
+    if (channel->name == name) {
+      return channel;
+    }
+  }
+
+  return new Channel(this, name);
 }
 
 void IRC::join (string channel) {
