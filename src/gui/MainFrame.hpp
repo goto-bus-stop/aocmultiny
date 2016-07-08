@@ -3,6 +3,7 @@
 #include <wx/wx.h>
 #include <wx/listctrl.h>
 #include "../irc/Channel.hpp"
+#include "RoomList.hpp"
 
 using aocmultiny::irc::Channel;
 
@@ -16,7 +17,7 @@ public:
 protected:
   wxDECLARE_EVENT_TABLE();
 private:
-  wxListView* gameList;
+  RoomList* roomList;
 
   void onHello (wxCommandEvent& event);
   void onExit (wxCommandEvent& event);

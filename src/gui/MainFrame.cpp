@@ -9,13 +9,6 @@ using aocmultiny::irc::Channel;
 namespace aocmultiny {
 namespace gui {
 
-wxListItem createListItem (int id, string content) {
-  wxListItem item;
-  item.SetId(id);
-  item.SetText(content);
-  return item;
-}
-
 MainFrame::MainFrame (const wxString& title)
     :
     wxFrame(NULL, wxID_ANY, title) {
@@ -33,10 +26,7 @@ MainFrame::MainFrame (const wxString& title)
   menuBar->Append(menuFile, wxT("&File"));
   menuBar->Append(menuHelp, wxT("&Help"));
 
-  this->gameList = new wxListView(this, wxID_ANY);
-  this->gameList->InsertColumn(0, createListItem(0, "Room"));
-  this->gameList->InsertColumn(1, createListItem(1, "Players"));
-  this->gameList->InsertColumn(2, createListItem(2, "Description"));
+  this->roomList = new RoomList(this);
 
   this->SetMenuBar(menuBar);
   this->CreateStatusBar();
@@ -49,11 +39,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 wxEND_EVENT_TABLE()
 
 void MainFrame::setRooms (vector<Channel*> rooms) {
-  for (auto room : rooms) {
-    auto index = this->gameList->InsertItem(0, room->name);
-    this->gameList->SetItem(index, 1, to_string(room->members_count));
-    this->gameList->SetItem(index, 2, room->topic);
-  }
+  this->roomList->setRooms(rooms);
 }
 
 void MainFrame::onAbout (wxCommandEvent& event) {
