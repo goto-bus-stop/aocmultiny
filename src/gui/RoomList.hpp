@@ -14,8 +14,12 @@ enum {
   ID_JOIN_ROOM
 };
 
+wxDECLARE_EVENT(JOIN_ROOM, wxCommandEvent);
+
 class RoomList: public wxListView {
+  wxDECLARE_DYNAMIC_CLASS(RoomList);
 public:
+  RoomList ();
   RoomList (wxWindow* parent);
   void setRooms (vector<Channel*> rooms);
 protected:

@@ -4,12 +4,13 @@ using std::string;
 using std::to_string;
 using std::vector;
 
+using aocmultiny::irc::IRC;
 using aocmultiny::irc::Channel;
 
 namespace aocmultiny {
 namespace gui {
 
-MainFrame::MainFrame (const wxString& title)
+MainFrame::MainFrame (const wxString& title, IRC* irc)
     :
     wxFrame(NULL, wxID_ANY, title) {
   auto menuFile = new wxMenu;
@@ -26,6 +27,7 @@ MainFrame::MainFrame (const wxString& title)
   menuBar->Append(menuFile, wxT("&File"));
   menuBar->Append(menuHelp, wxT("&Help"));
 
+  this->irc = irc;
   this->roomList = new RoomList(this);
 
   this->SetMenuBar(menuBar);
@@ -34,12 +36,19 @@ MainFrame::MainFrame (const wxString& title)
 }
 
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
+  EVT_COMMAND(ID_JOIN_ROOM, JOIN_ROOM, MainFrame::onJoinRoom)
   EVT_MENU(wxID_EXIT, MainFrame::onExit)
   EVT_MENU(wxID_ABOUT, MainFrame::onAbout)
 wxEND_EVENT_TABLE()
 
 void MainFrame::setRooms (vector<Channel*> rooms) {
   this->roomList->setRooms(rooms);
+}
+
+void MainFrame::onJoinRoom (wxCommandEvent& event) {
+  auto roomName = event.GetString().ToStdString();
+  std::wcout << "[MainFrame::onJoinRoom] " << roomName << std::endl;
+  this->irc->join(roomName);
 }
 
 void MainFrame::onAbout (wxCommandEvent& event) {

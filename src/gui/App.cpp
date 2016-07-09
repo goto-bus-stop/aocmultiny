@@ -13,7 +13,7 @@ bool App::OnInit () {
 
   this->irc = new irc::IRC("localhost");
 
-  auto frame = new MainFrame("AoCMulTiny");
+  auto frame = new MainFrame("AoCMulTiny", this->irc);
 
   wxTextEntryDialog dialog (frame, wxT("Username"));
 

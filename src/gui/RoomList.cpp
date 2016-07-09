@@ -9,11 +9,18 @@ using aocmultiny::irc::Channel;
 namespace aocmultiny {
 namespace gui {
 
+wxDEFINE_EVENT(JOIN_ROOM, wxCommandEvent);
+
 wxListItem createListItem (int id, string content) {
   wxListItem item;
   item.SetId(id);
   item.SetText(content);
   return item;
+}
+
+wxIMPLEMENT_DYNAMIC_CLASS(RoomList, wxListView)
+
+RoomList::RoomList () {
 }
 
 RoomList::RoomList (wxWindow* parent)
@@ -22,8 +29,8 @@ RoomList::RoomList (wxWindow* parent)
   this->setupColumns();
 }
 
-wxBEGIN_EVENT_TABLE(RoomList, wxListCtrl)
-  EVT_LIST_ITEM_ACTIVATED(ID_JOIN_ROOM, RoomList::onDoJoin)
+wxBEGIN_EVENT_TABLE(RoomList, wxListView)
+  EVT_LIST_ITEM_ACTIVATED(wxID_ANY, RoomList::onDoJoin)
 wxEND_EVENT_TABLE()
 
 void RoomList::setupColumns () {
@@ -43,7 +50,12 @@ void RoomList::setRooms (vector<Channel*> rooms) {
 }
 
 void RoomList::onDoJoin (wxListEvent& event) {
-  std::wcout << "[RoomList::onDoJoin] " << event.GetText() << std::endl;
+  auto roomName = event.GetText().ToStdString();
+  wxCommandEvent joinEvent (JOIN_ROOM, ID_JOIN_ROOM);
+  joinEvent.SetEventObject(this);
+  joinEvent.SetString(roomName);
+  std::wcout << "[RoomList::onDoJoin] " << roomName << std::endl;
+  ProcessWindowEvent(joinEvent);
 }
 
 }
