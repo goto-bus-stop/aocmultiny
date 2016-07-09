@@ -17,7 +17,7 @@ using aocmultiny::irc::IRC;
 namespace std {
   auto to_string (GUID g) {
     // so beautiful
-    wchar_t* wchr = (wchar_t*) calloc(50, sizeof(wchar_t));
+    auto wchr = static_cast<wchar_t*>(calloc(50, sizeof(wchar_t)));
     StringFromGUID2(g, wchr, 50);
     string str;
     for (size_t i = 0; i < 50 && wchr[i] != '\0'; i++) {

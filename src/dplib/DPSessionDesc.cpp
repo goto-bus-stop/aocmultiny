@@ -11,7 +11,7 @@ namespace dplib {
 const GUID GUID_AoC = { 0x5DE93F3F, 0xFC90, 0x4ee1, { 0xAE, 0x5A, 0x63, 0xDA, 0xFA, 0x05, 0x59, 0x50 } };
 
 wstring GUIDToString (GUID guid) {
-  wchar_t* str = (wchar_t*) malloc(51 * sizeof(wchar_t));
+  wchar_t* str = static_cast<wchar_t*>(malloc(51 * sizeof(wchar_t)));
   StringFromGUID2(guid, str, 50);
   return str;
 }
@@ -30,7 +30,7 @@ bool DPSessionDesc::isHost () {
 }
 
 void DPSessionDesc::alloc () {
-  auto sessionDesc = (DPSESSIONDESC2*) malloc(sizeof(DPSESSIONDESC2));
+  auto sessionDesc = static_cast<DPSESSIONDESC2*>(malloc(sizeof(DPSESSIONDESC2)));
   sessionDesc->dwSize = sizeof(DPSESSIONDESC2);
   sessionDesc->dwFlags = 0;
   wcout << "[DPSessionDesc::alloc] guidInstance: " << GUIDToString(guidInstance) << endl;
@@ -39,7 +39,7 @@ void DPSessionDesc::alloc () {
   sessionDesc->dwMaxPlayers = 8;
   sessionDesc->dwCurrentPlayers = 0;
   if (host) {
-    sessionDesc->lpszSessionNameA = (char*) this->name.c_str();
+    sessionDesc->lpszSessionNameA = const_cast<char*>(this->name.c_str());
   } else {
     sessionDesc->lpszSessionName = NULL;
   }

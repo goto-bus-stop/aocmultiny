@@ -29,7 +29,7 @@ Message::Message (string command, string prefix, vector<string> params)
 }
 
 void receiveThread (void* data) {
-  auto client = (IRC*) data;
+  auto client = static_cast<IRC*>(data);
   while (client->running) {
     client->receive();
   }
@@ -112,7 +112,7 @@ void IRC::connect () {
     wcout << "[IRC::connect] Could not connect to host" << endl;
     return;
   }
-  result = ::connect(this->socket, address->ai_addr, (int) address->ai_addrlen);
+  result = ::connect(this->socket, address->ai_addr, static_cast<int>(address->ai_addrlen));
   if (result != SOCKET_ERROR) {
     this->startReceiveThread();
   } else {

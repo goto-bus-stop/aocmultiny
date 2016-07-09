@@ -22,7 +22,7 @@ Lobby::Lobby (string playerName)
     NULL,
     CLSCTX_INPROC_SERVER,
     IID_IDirectPlay4A,
-    (void**) &this->dp
+    reinterpret_cast<void**>(&this->dp)
   );
 
   this->create();
@@ -34,7 +34,7 @@ HRESULT Lobby::create () {
     NULL,
     CLSCTX_INPROC_SERVER,
     IID_IDirectPlayLobby3A,
-    (void**) &this->dpLobby
+    reinterpret_cast<void**>(&this->dpLobby)
   );
   return hr;
 }
@@ -82,7 +82,7 @@ bool Lobby::receiveMessage (DWORD appId) {
     free(data);
     return true;
   }
-  auto sysMsg = reinterpret_cast<DPLMSG_SYSTEMMESSAGE*>(data);
+  auto sysMsg = static_cast<DPLMSG_SYSTEMMESSAGE*>(data);
   wcout << "[Lobby::receiveMessage] received SYSTEMMESSAGE, processing" << endl;
   switch (sysMsg->dwType) {
   case DPLSYS_APPTERMINATED:
@@ -92,9 +92,9 @@ bool Lobby::receiveMessage (DWORD appId) {
     return false;
   case DPLSYS_GETPROPERTY: {
     wcout << "[Lobby::receiveMessage] received GETPROPERTY message" << endl;
-    auto getPropMsg = (DPLMSG_GETPROPERTY*) data;
+    auto getPropMsg = static_cast<DPLMSG_GETPROPERTY*>(data);
     auto responseSize = sizeof(DPLMSG_GETPROPERTYRESPONSE);
-    auto getPropRes = (DPLMSG_GETPROPERTYRESPONSE*) malloc(responseSize);
+    auto getPropRes = static_cast<DPLMSG_GETPROPERTYRESPONSE*>(malloc(responseSize));
     getPropRes->dwType = DPLSYS_GETPROPERTYRESPONSE;
     getPropRes->dwRequestID = getPropMsg->dwRequestID;
     getPropRes->guidPlayer = getPropMsg->guidPlayer;
@@ -120,7 +120,7 @@ bool Lobby::receiveMessage (DWORD appId) {
     this->onConnectSucceeded.emit();
     break;
   default:
-    wcout << "[Lobby::receiveMessage] received unknown message: " << (int) sysMsg->dwType << endl;
+    wcout << "[Lobby::receiveMessage] received unknown message: " << sysMsg->dwType << endl;
     break;
   }
 
