@@ -17,7 +17,7 @@ using aocmultiny::irc::IRC;
 namespace std {
   auto to_string (GUID g) {
     // so beautiful
-    wchar_t* wchr = (wchar_t*) calloc(50, sizeof(wchar_t));
+    auto wchr = static_cast<wchar_t*>(calloc(50, sizeof(wchar_t)));
     StringFromGUID2(g, wchr, 50);
     string str;
     for (size_t i = 0; i < 50 && wchr[i] != '\0'; i++) {
@@ -53,7 +53,7 @@ void CLI::start () {
   this->irc->on("323", [this] (auto irc, auto params) {
     stringstream room_names ("Rooms:");
     for (auto channel : irc->channels) {
-      room_names << channel.substr(1) << " ";
+      room_names << channel->name.substr(1) << " ";
     }
     this->println(room_names.str());
   });
@@ -67,7 +67,7 @@ void CLI::start () {
       this->println("> " + params[1] + " joined the room");
     }
   });
-  this->irc->on("PART", [this] (IRC* irc, vector<string> params) {
+  this->irc->on("PART", [this] (auto irc, auto params) {
     if (params.size() == 1 || params[1] == "") {
       this->println("Left room \"" + params[0].substr(1) + "\"");
     } else {

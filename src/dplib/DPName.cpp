@@ -13,10 +13,10 @@ DPName::DPName (std::string name)
 }
 
 void DPName::alloc () {
-  this->dpName = (DPNAME*) malloc(sizeof(DPNAME));
+  this->dpName = static_cast<DPNAME*>(malloc(sizeof(DPNAME)));
 
   auto length = this->name.length();
-  auto nameStr = (char*) calloc(length + 1, sizeof(char));
+  auto nameStr = static_cast<char*>(calloc(length + 1, sizeof(char)));
   this->name.copy(nameStr, length, 0);
 
   this->dpName->dwSize = sizeof(DPNAME);

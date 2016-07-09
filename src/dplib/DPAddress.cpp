@@ -14,19 +14,21 @@ DPAddress::DPAddress (LPDIRECTPLAYLOBBY3A lobby, std::string ip)
 
 void DPAddress::alloc () {
   auto addressElements =
-    (DPCOMPOUNDADDRESSELEMENT*) malloc(3 * sizeof(DPCOMPOUNDADDRESSELEMENT));
+    static_cast<DPCOMPOUNDADDRESSELEMENT*>(malloc(3 * sizeof(DPCOMPOUNDADDRESSELEMENT)));
   int elements = 0;
   void* address;
   DWORD addressSize = 0;
 
   // TCP/IP service provider
   addressElements[0].guidDataType = DPAID_ServiceProvider;
-  addressElements[0].lpData = (void*)&DPSPGUID_TCPIP;
+  addressElements[0].lpData = const_cast<void*>(
+    static_cast<const void*>(&DPSPGUID_TCPIP));
   addressElements[0].dwDataSize = sizeof(GUID);
   elements++;
   // Host IP
   addressElements[1].guidDataType = DPAID_INet;
-  addressElements[1].lpData = (void*)this->ip.c_str();
+  addressElements[1].lpData = const_cast<void*>(
+    static_cast<const void*>(this->ip.c_str()));
   addressElements[1].dwDataSize = this->ip.length() + 1;
   elements++;
 

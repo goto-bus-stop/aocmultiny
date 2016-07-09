@@ -25,7 +25,7 @@ public:
     }
   }
 
-  EventListeners& operator+= (Listener l) {
+  EventListeners& operator+= (auto l) {
     this->listeners.push_back(l);
     return *this;
   }
