@@ -4,14 +4,16 @@
 #include <algorithm>
 #include "CLI.hpp"
 #include "../irc/IRC.hpp"
-#include "../Lobby.hpp"
+#include "../dplib/DPLobby.hpp"
+#include "../dplib/DPGameAoC.hpp"
 
 using std::to_string;
 using std::string;
 using std::wstring;
 using std::stringstream;
 using std::for_each;
-using aocmultiny::Lobby;
+using aocmultiny::dplib::DPLobby;
+using aocmultiny::dplib::DPGameAoC;
 using aocmultiny::irc::IRC;
 
 namespace std {
@@ -48,7 +50,8 @@ void CLI::start () {
   this->irc->nick(player_name);
   this->irc->user(player_name);
 
-  auto lobby = new Lobby(player_name);
+  auto game = new DPGameAoC();
+  auto lobby = new DPLobby(game, player_name);
 
   this->irc->on("323", [this] (auto irc, auto params) {
     stringstream room_names ("Rooms:");

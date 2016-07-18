@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <wx/app.h>
 #include "main.hpp"
-#include "Lobby.hpp"
+#include "dplib/DPLobby.hpp"
+#include "dplib/DPGameAoC.hpp"
 #include "cli/CLI.hpp"
 #include "irc/IRC.hpp"
 #include "gui/App.hpp"
@@ -20,11 +21,11 @@ void main (vector<string> params) {
 
   string action = params.size() > 0 ? params[0] : "";
   if (action == "host") {
-    auto lobby = new Lobby("Hosting");
+    auto lobby = new dplib::DPLobby(new dplib::DPGameAoC(), "Hosting");
     lobby->host();
     lobby->launch();
   } else if (action == "join") {
-    auto lobby = new Lobby("Joining");
+    auto lobby = new dplib::DPLobby(new dplib::DPGameAoC(), "Joining");
     lobby->join({ 0 }, params[1]);
     lobby->launch();
   } else if (action == "cli") {

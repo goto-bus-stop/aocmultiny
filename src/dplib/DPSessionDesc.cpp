@@ -7,17 +7,15 @@ using namespace std;
 namespace aocmultiny {
 namespace dplib {
 
-// {5DE93F3F-FC90-4ee1-AE5A-63DAFA055950}
-const GUID GUID_AoC = { 0x5DE93F3F, 0xFC90, 0x4ee1, { 0xAE, 0x5A, 0x63, 0xDA, 0xFA, 0x05, 0x59, 0x50 } };
-
 wstring GUIDToString (GUID guid) {
   wchar_t* str = static_cast<wchar_t*>(malloc(51 * sizeof(wchar_t)));
   StringFromGUID2(guid, str, 50);
   return str;
 }
 
-DPSessionDesc::DPSessionDesc (GUID guidInstance, string sessionName, string sessionPass, bool host)
+DPSessionDesc::DPSessionDesc (GUID guidApplication, GUID guidInstance, string sessionName, string sessionPass, bool host)
     :
+    guidApplication(guidApplication),
     guidInstance(guidInstance),
     name(sessionName),
     pass(sessionPass),
@@ -35,7 +33,7 @@ void DPSessionDesc::alloc () {
   sessionDesc->dwFlags = 0;
   wcout << "[DPSessionDesc::alloc] guidInstance: " << GUIDToString(guidInstance) << endl;
   sessionDesc->guidInstance = guidInstance;
-  sessionDesc->guidApplication = GUID_AoC;
+  sessionDesc->guidApplication = guidApplication;
   sessionDesc->dwMaxPlayers = 8;
   sessionDesc->dwCurrentPlayers = 0;
   if (host) {

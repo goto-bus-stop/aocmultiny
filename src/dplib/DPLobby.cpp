@@ -1,19 +1,20 @@
 #include <string>
 #include <iostream>
-#include "Lobby.hpp"
-#include "dplib/main.hpp"
+#include "DPLobby.hpp"
 
 using namespace std;
 
 namespace aocmultiny {
+namespace dplib {
 
-Lobby::Lobby ()
+DPLobby::DPLobby (DPGame* game)
     :
-    Lobby("Player") {
+    DPLobby(game, "Player") {
 }
 
-Lobby::Lobby (string playerName)
+DPLobby::DPLobby (DPGame* game, string playerName)
     :
+    game(game),
     guid({ 0 }),
     isHosting(false),
     playerName(playerName) {
@@ -28,7 +29,7 @@ Lobby::Lobby (string playerName)
   this->create();
 }
 
-HRESULT Lobby::create () {
+HRESULT DPLobby::create () {
   auto hr = CoCreateInstance(
     CLSID_DirectPlayLobby,
     NULL,
@@ -42,7 +43,7 @@ HRESULT Lobby::create () {
 /**
  * Host a game.
  */
-void Lobby::host () {
+void DPLobby::host () {
   CoCreateGuid(&this->guid);
   this->isHosting = true;
   this->hostIp = "";
@@ -52,46 +53,46 @@ void Lobby::host () {
 /**
  * Join a game.
  */
-void Lobby::join (GUID sessionId, string remoteIp) {
+void DPLobby::join (GUID sessionId, string remoteIp) {
   this->guid = sessionId;
   this->hostIp = remoteIp;
   return;
 }
 
-GUID Lobby::getSessionGUID () {
+GUID DPLobby::getSessionGUID () {
   return this->guid;
 }
 
-bool Lobby::receiveMessage (DWORD appId) {
+bool DPLobby::receiveMessage (DWORD appId) {
   DWORD messageFlags;
   DWORD dataSize = 0;
   auto hr = this->dpLobby->ReceiveLobbyMessage(0, appId, &messageFlags, NULL, &dataSize);
   if (hr != DPERR_BUFFERTOOSMALL) {
-    wcout << "[Lobby::receiveMessage] Error: should be BUFFERTOOSMALL" << endl;
+    wcout << "[DPLobby::receiveMessage] Error: should be BUFFERTOOSMALL" << endl;
     return false;
   }
   messageFlags = 0;
   void* data = malloc(dataSize);
   hr = this->dpLobby->ReceiveLobbyMessage(0, appId, &messageFlags, data, &dataSize);
-  wcout << "[Lobby::receiveMessage] received " << messageFlags << " : " << dataSize << endl;
+  wcout << "[DPLobby::receiveMessage] received " << messageFlags << " : " << dataSize << endl;
   if (FAILED(hr)) {
     return false;
   }
   if (messageFlags == DPLMSG_STANDARD) {
-    wcout << "[Lobby::receiveMessage] received STANDARD message, discarding" << endl;
+    wcout << "[DPLobby::receiveMessage] received STANDARD message, discarding" << endl;
     free(data);
     return true;
   }
   auto sysMsg = static_cast<DPLMSG_SYSTEMMESSAGE*>(data);
-  wcout << "[Lobby::receiveMessage] received SYSTEMMESSAGE, processing" << endl;
+  wcout << "[DPLobby::receiveMessage] received SYSTEMMESSAGE, processing" << endl;
   switch (sysMsg->dwType) {
   case DPLSYS_APPTERMINATED:
-    wcout << "[Lobby::receiveMessage] received APPTERMINATED message" << endl
+    wcout << "[DPLobby::receiveMessage] received APPTERMINATED message" << endl
           << "Press <enter> to exit." << endl;
     this->onAppTerminated.emit();
     return false;
   case DPLSYS_GETPROPERTY: {
-    wcout << "[Lobby::receiveMessage] received GETPROPERTY message" << endl;
+    wcout << "[DPLobby::receiveMessage] received GETPROPERTY message" << endl;
     auto getPropMsg = static_cast<DPLMSG_GETPROPERTY*>(data);
     auto responseSize = sizeof(DPLMSG_GETPROPERTYRESPONSE);
     auto getPropRes = static_cast<DPLMSG_GETPROPERTYRESPONSE*>(malloc(responseSize));
@@ -102,25 +103,25 @@ bool Lobby::receiveMessage (DWORD appId) {
     getPropRes->hr = DPERR_UNKNOWNMESSAGE;
     getPropRes->dwDataSize = 0;
     getPropRes->dwPropertyData[0] = 0;
-    wcout << "[Lobby::receiveMessage] responding to unknown GETPROPERTY message" << endl;
+    wcout << "[DPLobby::receiveMessage] responding to unknown GETPROPERTY message" << endl;
     this->dpLobby->SendLobbyMessage(0, appId, getPropRes, responseSize);
     break;
   }
   case DPLSYS_NEWSESSIONHOST:
-    wcout << "[Lobby::receiveMessage] received NEWSESSIONHOST message" << endl;
+    wcout << "[DPLobby::receiveMessage] received NEWSESSIONHOST message" << endl;
     break;
   case DPLSYS_CONNECTIONSETTINGSREAD:
-    wcout << "[Lobby::receiveMessage] received CONNECTIONSETTINGSREAD message" << endl;
+    wcout << "[DPLobby::receiveMessage] received CONNECTIONSETTINGSREAD message" << endl;
     break;
   case DPLSYS_DPLAYCONNECTFAILED:
-    wcout << "[Lobby::receiveMessage] received CONNECTFAILED message" << endl;
+    wcout << "[DPLobby::receiveMessage] received CONNECTFAILED message" << endl;
     break;
   case DPLSYS_DPLAYCONNECTSUCCEEDED:
-    wcout << "[Lobby::receiveMessage] received CONNECTSUCCEEDED message!" << endl;
+    wcout << "[DPLobby::receiveMessage] received CONNECTSUCCEEDED message!" << endl;
     this->onConnectSucceeded.emit();
     break;
   default:
-    wcout << "[Lobby::receiveMessage] received unknown message: " << sysMsg->dwType << endl;
+    wcout << "[DPLobby::receiveMessage] received unknown message: " << sysMsg->dwType << endl;
     break;
   }
 
@@ -128,34 +129,36 @@ bool Lobby::receiveMessage (DWORD appId) {
   return true;
 }
 
-void Lobby::launch () {
-  dplib::DPAddress address (this->dpLobby, this->hostIp);
-  auto sessionDesc = new dplib::DPSessionDesc(this->guid, "Session", "", this->isHosting);
-  auto playerName = new dplib::DPName(this->playerName);
-  auto connection = new dplib::DPLConnection(address, sessionDesc, playerName);
+void DPLobby::launch () {
+  DPAddress address (this->dpLobby, this->hostIp);
+  const auto gameGuid = this->game->getGameGuid();
+  const auto sessionDesc = new DPSessionDesc(gameGuid, this->guid, "Session", "", this->isHosting);
+  const auto playerName = new DPName(this->playerName);
+  const auto connection = new DPLConnection(address, sessionDesc, playerName);
 
   auto receiveEvent = CreateEvent(NULL, false, false, NULL);
   DWORD appId = 0;
 
-  wcout << "[Lobby::launch] Launching app" << endl;
+  wcout << "[DPLobby::launch] Launching app" << endl;
 
   auto hr = this->dpLobby->RunApplication(0, &appId, connection->unwrap(), receiveEvent);
   if (FAILED(hr)) {
     // oops.
-    wcout << "[Lobby::launch] Something went wrong:" << endl;
-    cout << dplib::getDPError(hr) << endl;
+    wcout << "[DPLobby::launch] Something went wrong:" << endl;
+    cout << getDPError(hr) << endl;
   } else {
     bool keepGoing = true;
     while (keepGoing && WaitForSingleObject(receiveEvent, INFINITE) == WAIT_OBJECT_0) {
-      wcout << "[Lobby::launch] receiving lobby message" << endl;
+      wcout << "[DPLobby::launch] receiving lobby message" << endl;
       keepGoing = this->receiveMessage(appId);
     }
   }
 
-  wcout << "[Lobby::launch] Cleaning up" << endl;
+  wcout << "[DPLobby::launch] Cleaning up" << endl;
   delete connection;
   delete playerName;
   delete sessionDesc;
 }
 
+}
 }
