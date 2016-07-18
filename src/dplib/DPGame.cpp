@@ -3,11 +3,16 @@
 namespace aocmultiny {
 namespace dplib {
 
-DPGame::DPGame () {
+DPGame::DPGame (GUID guid)
+    :
+    guid(guid) {
 }
 
 GUID DPGame::getGameGuid () {
-  return { 0 };
+  return this->guid;
+}
+
+void DPGame::receiveMessage (DPLobbyMessage* message) {
 }
 
 }

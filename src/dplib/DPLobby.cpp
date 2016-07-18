@@ -1,11 +1,42 @@
 #include <string>
 #include <iostream>
 #include "DPLobby.hpp"
+#include "DPGame.hpp"
 
 using namespace std;
 
 namespace aocmultiny {
 namespace dplib {
+
+DPLobbyMessage::DPLobbyMessage (DPLobby* lobby, int appId, int flags, void* data, int size)
+    :
+    appId(appId),
+    lobby(lobby),
+    flags(flags),
+    size(size),
+    data(data) {
+}
+
+void DPLobbyMessage::reply (void* data, int size) {
+  this->lobby->sendLobbyMessage(0, this->appId, data, size);
+}
+
+void DPLobbyMessage::stop () {
+  this->shouldStop = true;
+}
+
+bool DPLobbyMessage::requestedStop () {
+  return this->shouldStop;
+}
+
+template<typename T>
+T DPLobbyMessage::as () {
+  return static_cast<T>(this->data);
+}
+
+DPLobbyMessage::~DPLobbyMessage () {
+  free(this->data);
+}
 
 DPLobby::DPLobby (DPGame* game)
     :
@@ -78,55 +109,18 @@ bool DPLobby::receiveMessage (DWORD appId) {
   if (FAILED(hr)) {
     return false;
   }
-  if (messageFlags == DPLMSG_STANDARD) {
-    wcout << "[DPLobby::receiveMessage] received STANDARD message, discarding" << endl;
-    free(data);
-    return true;
-  }
-  auto sysMsg = static_cast<DPLMSG_SYSTEMMESSAGE*>(data);
-  wcout << "[DPLobby::receiveMessage] received SYSTEMMESSAGE, processing" << endl;
-  switch (sysMsg->dwType) {
-  case DPLSYS_APPTERMINATED:
-    wcout << "[DPLobby::receiveMessage] received APPTERMINATED message" << endl
-          << "Press <enter> to exit." << endl;
-    this->onAppTerminated.emit();
-    return false;
-  case DPLSYS_GETPROPERTY: {
-    wcout << "[DPLobby::receiveMessage] received GETPROPERTY message" << endl;
-    auto getPropMsg = static_cast<DPLMSG_GETPROPERTY*>(data);
-    auto responseSize = sizeof(DPLMSG_GETPROPERTYRESPONSE);
-    auto getPropRes = static_cast<DPLMSG_GETPROPERTYRESPONSE*>(malloc(responseSize));
-    getPropRes->dwType = DPLSYS_GETPROPERTYRESPONSE;
-    getPropRes->dwRequestID = getPropMsg->dwRequestID;
-    getPropRes->guidPlayer = getPropMsg->guidPlayer;
-    getPropRes->guidPropertyTag = getPropMsg->guidPropertyTag;
-    getPropRes->hr = DPERR_UNKNOWNMESSAGE;
-    getPropRes->dwDataSize = 0;
-    getPropRes->dwPropertyData[0] = 0;
-    wcout << "[DPLobby::receiveMessage] responding to unknown GETPROPERTY message" << endl;
-    this->dpLobby->SendLobbyMessage(0, appId, getPropRes, responseSize);
-    break;
-  }
-  case DPLSYS_NEWSESSIONHOST:
-    wcout << "[DPLobby::receiveMessage] received NEWSESSIONHOST message" << endl;
-    break;
-  case DPLSYS_CONNECTIONSETTINGSREAD:
-    wcout << "[DPLobby::receiveMessage] received CONNECTIONSETTINGSREAD message" << endl;
-    break;
-  case DPLSYS_DPLAYCONNECTFAILED:
-    wcout << "[DPLobby::receiveMessage] received CONNECTFAILED message" << endl;
-    break;
-  case DPLSYS_DPLAYCONNECTSUCCEEDED:
-    wcout << "[DPLobby::receiveMessage] received CONNECTSUCCEEDED message!" << endl;
-    this->onConnectSucceeded.emit();
-    break;
-  default:
-    wcout << "[DPLobby::receiveMessage] received unknown message: " << sysMsg->dwType << endl;
-    break;
-  }
 
-  free(data);
-  return true;
+  auto message = new DPLobbyMessage(this, appId, messageFlags, data, dataSize);
+
+  this->game->receiveMessage(message);
+
+  auto stopping = message->requestedStop();
+  delete message;
+  return !stopping;
+}
+
+void DPLobby::sendLobbyMessage (int flags, int appId, void* data, int size) {
+  this->dpLobby->SendLobbyMessage(flags, appId, data, size);
 }
 
 void DPLobby::launch () {
