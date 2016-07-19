@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <windows.h>
+#include <dplay.h>
 
 namespace aocmultiny {
 namespace dplib {

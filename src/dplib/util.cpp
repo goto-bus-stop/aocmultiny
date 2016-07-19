@@ -1,6 +1,5 @@
 #include <string>
 #include <dplay.h>
-#include <windows.h>
 
 namespace aocmultiny {
 namespace dplib {

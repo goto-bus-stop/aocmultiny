@@ -19,7 +19,7 @@ void main (vector<string> params) {
   CoInitialize(NULL);
   wcout << "[main] Starting" << endl;
 
-  string action = params.size() > 0 ? params[0] : "";
+  auto action = params.size() > 0 ? params[0] : "";
   if (action == "host") {
     auto lobby = new dplib::DPLobby(new dplib::DPGameAoC(), "Hosting");
     lobby->host();
