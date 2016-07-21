@@ -51,12 +51,13 @@ On Windowses with Visual Studio:
 ## Credits
 
  - IRC: Took clues (and an IRC message parser) from [Fredi/IRCClient]
- - DP: I used [@biegleux]'s Delphi DPLobbySystem as a reference for most of the
-   DirectPlay lobby/game setup. I'm not sure if the sources are still online,
-   but I'll link them here if I can find them.
+ - DirectPlay: I used [@biegleux]'s Delphi [DPLobbySystem] as a reference for
+   most of the DirectPlay lobby/game setup. I'm not sure if the sources are
+   still online, but I'll link them here if I can find them.
 
 [Fredi/IRCClient]: https://github.com/Fredi/IRCClient
 [@biegleux]: https://github.com/biegleux
+[DPLobbySystem]: https://web.archive.org/web/20140519214627/https://code.google.com/p/dplobbysystem/
 [wxWidgets]: https://wxwidgets.org/
 [DirectX SDK with DirectPlay (August 2007)]: https://www.microsoft.com/en-us/download/details.aspx?id=13287
 [mingwbuild]: https://wiki.wxwidgets.org/Cross-Compiling_Under_Linux#Cross-compiling_under_Linux_for_MS_Windows
