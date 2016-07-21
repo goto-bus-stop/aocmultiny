@@ -27,6 +27,27 @@ onto an ICE-established socket. All in due time :D
 UserPatch includes automatic port forwarding using UPNP, but that doesn't always
 cut it, and you still need to exchange IP addresses manually.
 
+## Building
+
+On Linuxes:
+
+ 1. Install Wine and Mingw32. Something like
+    `apt-get install wine mingw32 mingw32-binutils`.
+ 2. Download and build [wxWidgets] 3.1.0 using [MinGW][mingwbuild].
+ 3. Download the last [DirectX SDK with DirectPlay (August 2007)].
+ 4. `make` to build
+ 5. `make run` to run
+
+On Windowses with Visual Studio:
+
+ 1. Download and build [wxWidgets] using [Visual Studio][vsbuild]. Import one of
+    the VS project files that comes with wxWidgets and build it.
+ 2. Download the last [DirectX SDK with DirectPlay (August 2007)].
+ 3. Configure environment variables:
+    - `WXWIN=` path to your wxWidgets build base directory.
+    - `AOCMULTINY_DPLAY_SDK=` path to where you installed the DirectX SDK.
+ 4. Import the AoCMultiny.vcxproj project file.
+
 ## Credits
 
  - IRC: Took clues (and an IRC message parser) from [Fredi/IRCClient]
@@ -36,3 +57,7 @@ cut it, and you still need to exchange IP addresses manually.
 
 [Fredi/IRCClient]: https://github.com/Fredi/IRCClient
 [@biegleux]: https://github.com/biegleux
+[wxWidgets]: https://wxwidgets.org/
+[DirectX SDK with DirectPlay (August 2007)]: https://www.microsoft.com/en-us/download/details.aspx?id=13287
+[mingwbuild]: https://wiki.wxwidgets.org/Cross-Compiling_Under_Linux#Cross-compiling_under_Linux_for_MS_Windows
+[vsbuild]: https://wiki.wxwidgets.org/Microsoft_Visual_C%2B%2B_Guide
