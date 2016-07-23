@@ -1,8 +1,8 @@
+#include "IRC.hpp"
+#include "Channel.hpp"
 #include <algorithm>
 #include <string>
 #include <vector>
-#include "IRC.hpp"
-#include "Channel.hpp"
 
 using namespace std;
 

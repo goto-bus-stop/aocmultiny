@@ -1,3 +1,5 @@
+#include "IRC.hpp"
+#include "Channel.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -6,8 +8,6 @@
 #include <algorithm>
 #include <functional>
 #include <process.h>
-#include "IRC.hpp"
-#include "Channel.hpp"
 
 using namespace std;
 
@@ -21,11 +21,23 @@ static string RPL_LISTSTART = "321";
 static string RPL_LIST = "322";
 static string RPL_LISTEND = "323";
 
-Message::Message (string command, string prefix, vector<string> params)
+Message::Message (string command, MessagePrefix* prefix, vector<string> params)
     :
     command(command),
     prefix(prefix),
     params(params) {
+}
+
+Message::~Message () {
+  delete this->prefix;
+}
+
+MessagePrefix::MessagePrefix (string nickname, string username, string hostname)
+    :
+    nickname(nickname),
+    username(username),
+    hostname(hostname)
+    {
 }
 
 void receiveThread (void* data) {
@@ -166,6 +178,24 @@ void IRC::receive () {
   }
 }
 
+MessagePrefix* parsePrefix (string raw) {
+  string nickname = "";
+  string username = "";
+  string hostname = "";
+  auto split = raw.find("!");
+  if (split != string::npos) {
+    nickname = raw.substr(0, split);
+    raw = raw.substr(split + 1);
+  }
+  split = raw.find("@");
+  if (split != string::npos) {
+    username = raw.substr(0, split);
+    raw = raw.substr(split + 1);
+  }
+  hostname = raw;
+  return new MessagePrefix(nickname, username, hostname);
+}
+
 Message* IRC::parse (string raw) {
   string prefix = "";
   string command = "";
@@ -202,7 +232,7 @@ Message* IRC::parse (string raw) {
     }
   }
 
-  return new Message(command, prefix, parameters);
+  return new Message(command, parsePrefix(prefix), parameters);
 }
 
 void IRC::execute (Message message) {
