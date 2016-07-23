@@ -35,8 +35,9 @@ On Linuxes:
     `apt-get install wine mingw32 mingw32-binutils`.
  2. Download and build [wxWidgets] 3.1.0 using [MinGW][mingwbuild].
  3. Download the last [DirectX SDK with DirectPlay (August 2007)].
- 4. `make` to build
- 5. `make run` to run
+ 4. Symlink `dxguid.lib` and `dplayx.lib` from the DirectPlay SDK into `lib/`.
+ 5. `make` to build
+ 6. `make run` to run
 
 On Windowses with Visual Studio:
 
