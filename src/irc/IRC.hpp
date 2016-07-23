@@ -1,12 +1,12 @@
 #pragma once
-#include <functional>
-#include <string>
-#include <vector>
-#include <map>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "Channel.hpp"
 #include "../util.hpp"
+#include <functional>
+#include <string>
+#include <vector>
+#include <map>
 
 using std::string;
 using std::vector;
@@ -17,16 +17,27 @@ namespace irc {
 class IRC;
 class Channel;
 class Message;
+class MessagePrefix;
 
 typedef std::function<void(IRC*, vector<string>)> Handler;
 typedef vector<Channel*> ChannelList;
 
+class MessagePrefix {
+public:
+  MessagePrefix (string nickname, string username, string hostname);
+
+  string nickname;
+  string username;
+  string hostname;
+};
+
 class Message {
 public:
-  Message (string command, string prefix, vector<string> params);
+  Message (string command, MessagePrefix* prefix, vector<string> params);
+  ~Message ();
 
   string command;
-  string prefix;
+  MessagePrefix* prefix;
   vector<string> params;
 };
 
