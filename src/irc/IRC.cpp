@@ -68,17 +68,17 @@ IRC::~IRC () {
 }
 
 void IRC::attachDefaultHandlers () {
-  this->on("JOIN", [this] (auto irc, auto params) {
-    this->onJoinedChannel(params[0]);
+  this->on("JOIN", [this] (auto, auto message) {
+    this->onJoinedChannel(message.params[0]);
   });
-  this->on(RPL_LISTSTART, [this] (auto irc, auto params) {
+  this->on(RPL_LISTSTART, [this] (auto, auto) {
     this->next_channels.clear();
   });
-  this->on(RPL_LIST, [this] (auto irc, auto params) {
-    auto members_count = params.size() > 2 ? stoi(params[2]) : 0;
-    auto topic = params.size() > 3 ? params[3] : "";
+  this->on(RPL_LIST, [this] (auto, auto message) {
+    auto members_count = message.params.size() > 2 ? stoi(message.params[2]) : 0;
+    auto topic = message.params.size() > 3 ? message.params[3] : "";
     this->next_channels.push_back(
-      new Channel(irc, params[1], members_count, topic)
+      new Channel(this, message.params[1], members_count, topic)
     );
   });
   this->on(RPL_LISTEND, [this] (auto, auto) {
@@ -240,7 +240,7 @@ void IRC::execute (Message message) {
     const auto& handlers = this->handlers.at(message.command);
     cout << "[IRC::execute] Handlers for " << message.command << endl;
     for (auto handler : handlers) {
-      handler(this, message.params);
+      handler(this, message);
     }
   } catch (std::out_of_range) {
     cout << "[IRC::execute] Unrecognized command: " << message.command << endl;

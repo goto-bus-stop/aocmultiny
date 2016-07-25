@@ -19,7 +19,7 @@ class Channel;
 class Message;
 class MessagePrefix;
 
-typedef std::function<void(IRC*, vector<string>)> Handler;
+typedef std::function<void(IRC*, Message)> Handler;
 typedef vector<Channel*> ChannelList;
 
 class MessagePrefix {

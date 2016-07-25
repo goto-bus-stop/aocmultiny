@@ -53,7 +53,7 @@ void CLI::start () {
   auto game = new DPGameAoC();
   auto lobby = new DPLobby(game, player_name);
 
-  this->irc->on("323", [this] (auto irc, auto params) {
+  this->irc->on("323", [this] (auto irc, auto message) {
     stringstream room_names ("Rooms:");
     for (auto channel : irc->channels) {
       room_names << channel->name.substr(1) << " ";
@@ -61,7 +61,8 @@ void CLI::start () {
     this->println(room_names.str());
   });
 
-  this->irc->on("JOIN", [this] (auto irc, auto params) {
+  this->irc->on("JOIN", [this] (auto irc, auto message) {
+    auto params = message.params;
     if (params.size() == 1 || params[1] == "") {
       auto room_name = params[0].substr(1);
       this->current_room = room_name;
@@ -70,7 +71,8 @@ void CLI::start () {
       this->println("> " + params[1] + " joined the room");
     }
   });
-  this->irc->on("PART", [this] (auto irc, auto params) {
+  this->irc->on("PART", [this] (auto irc, auto message) {
+    auto params = message.params;
     if (params.size() == 1 || params[1] == "") {
       this->println("Left room \"" + params[0].substr(1) + "\"");
     } else {
@@ -78,8 +80,8 @@ void CLI::start () {
     }
   });
 
-  this->irc->on("PRIVMSG", [this, lobby] (auto irc, auto params) {
-    auto action = params.back();
+  this->irc->on("PRIVMSG", [this, lobby] (auto irc, auto message) {
+    auto action = message.params.back();
     if (this->irc->is_ctcp(action)) {
       auto ctcp = split(action.substr(1, -1), ' ');
       if (ctcp[0] == "AOC_START" && ctcp.size() >= 3) {
