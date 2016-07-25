@@ -10,7 +10,11 @@ OBJECTS = $(SOURCE_FILES:.cpp=.o)
 BUILD_DIR = bin
 EXECUTABLE = client.exe
 
-all: $(SOURCE_FILES) $(EXECUTABLE)
+NICESP_DLL = nicesp.dll
+NICESP_SOURCE_DIR = nicesp
+NICESP_SOURCE_FILES = $(shell find $(NICESP_SOURCE_DIR) -name *.cpp -or -name *.hpp)
+
+all: $(SOURCE_FILES) $(EXECUTABLE) $(NICESP_DLL)
 
 $(EXECUTABLE): $(OBJECTS) $(LIBS)
 	$(CC) -o $@ $(OBJECTS) $(LDFLAGS)
@@ -23,5 +27,14 @@ run: $(EXECUTABLE)
 
 clean:
 	rm -rf $(OBJECTS) $(EXECUTABLE)
+
+$(NICESP_DLL): $(NICESP_SOURCE_FILES)
+	$(CC) \
+		-shared \
+		-std=c++14 \
+		-I./include \
+		-o $@ \
+		$(NICESP_SOURCE_DIR)/nicesp.cpp \
+		-lole32 -ldxguid
 
 .PHONY: clean run
