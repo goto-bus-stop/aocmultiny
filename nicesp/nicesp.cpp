@@ -1,9 +1,15 @@
 #include "nicesp.hpp"
+#include <nice/agent.h>
+#include <gio/gnetworking.h>
 #include <stdio.h>
+#include <process.h>
 
 using namespace std;
 
 const GUID DPSPGUID_NICE = { 0xe2dd8ebe, 0x1f03, 0x43b7, { 0x8d, 0x92, 0x9c, 0x6c, 0x2f, 0x5c, 0x44, 0x26 } };
+
+static GMainLoop* gloop;
+static NiceAgent* agent;
 
 BOOL WINAPI DllMain (HINSTANCE instance, DWORD reason, void* reserved) {
   printf("DllMain\n");
@@ -91,6 +97,12 @@ static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
   return DPERR_UNSUPPORTED;
 }
 
+void startThread (void*) {
+  g_main_loop_run (gloop);
+  g_main_loop_unref(gloop);
+  _endthread();
+}
+
 static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   printf("Open\n");
   printf(
@@ -98,6 +110,9 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
     data->bCreate, data->lpSPMessageHeader, data->lpISP,
     data->bReturnStatus, data->dwOpenFlags, data->dwSessionFlags
   );
+
+  _beginthread(&startThread, 0, nullptr);
+
   return DPERR_UNSUPPORTED;
 }
 
@@ -202,6 +217,18 @@ __declspec(dllexport) HRESULT __cdecl SPInit (SPINITDATA* spData) {
 
   /* We only support NICE service */
   if (!IsEqualGUID(*spData->lpGuid, DPSPGUID_NICE)) {
+    return DPERR_UNAVAILABLE;
+  }
+
+  g_networking_init();
+
+  gloop = g_main_loop_new(NULL, FALSE);
+
+  agent = nice_agent_new(g_main_loop_get_context(gloop),
+      NICE_COMPATIBILITY_RFC5245);
+
+  if (agent == NULL) {
+    printf("Could not create Nice agent\n");
     return DPERR_UNAVAILABLE;
   }
 

@@ -1,4 +1,5 @@
 WXC = wx-config --static=yes
+PKGCONFIG = i686-w64-mingw32-pkg-config
 
 CC = i586-mingw32msvc-g++
 CFLAGS = -c -Wall -std=c++14 -g $(shell $(WXC) --cxxflags) -DUNICODE
@@ -33,8 +34,9 @@ $(NICESP_DLL): $(NICESP_SOURCE_FILES)
 		-shared \
 		-std=c++14 \
 		-I./include \
+		$(shell $(PKGCONFIG) --cflags glib-2.0 gio-2.0 nice) \
 		-o $@ \
 		$(NICESP_SOURCE_DIR)/nicesp.cpp \
-		-lole32 -ldxguid
+		-lole32 -ldxguid $(shell $(PKGCONFIG) --libs glib-2.0 gio-2.0 nice)
 
 .PHONY: clean run
