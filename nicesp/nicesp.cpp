@@ -13,7 +13,7 @@ static NiceAgent* agent;
 
 BOOL WINAPI DllMain (HINSTANCE instance, DWORD reason, void* reserved) {
   printf("DllMain\n");
-  printf("(0x%p, %d, %p)\n", instance, reason, reserved);
+  printf("(0x%p, %ld, %p)\n", instance, reason, reserved);
 
   switch (reason) {
   case DLL_PROCESS_ATTACH:
@@ -31,7 +31,7 @@ BOOL WINAPI DllMain (HINSTANCE instance, DWORD reason, void* reserved) {
 static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
   printf("EnumSessions\n");
   printf(
-    "(%p,%d,%p,%u) stub\n",
+    "(%p,%ld,%p,%u) stub\n",
     data->lpMessage, data->dwMessageSize,
     data->lpISP, data->bReturnStatus
   );
@@ -41,7 +41,7 @@ static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
 static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
   printf("Reply\n");
   printf(
-    "(%p,%p,%d,%d,%p) stub\n",
+    "(%p,%p,%ld,%ld,%p) stub\n",
     data->lpSPMessageHeader, data->lpMessage, data->dwMessageSize,
     data->idNameServer, data->lpISP
   );
@@ -51,7 +51,7 @@ static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
 static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
   printf("Send\n");
   printf(
-    "(0x%08x,%d,%d,%p,%d,%u,%p) stub\n",
+    "(0x%08lx,%ld,%ld,%p,%ld,%u,%p) stub\n",
     data->dwFlags, data->idPlayerTo, data->idPlayerFrom,
     data->lpMessage, data->dwMessageSize,
     data->bSystemMessage, data->lpISP
@@ -62,7 +62,7 @@ static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
 static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
   printf("CreatePlayer\n");
   printf(
-    "(%d,0x%08x,%p,%p) stub\n",
+    "(%ld,0x%08lx,%p,%p) stub\n",
     data->idPlayer, data->dwFlags,
     data->lpSPMessageHeader, data->lpISP
   );
@@ -72,7 +72,7 @@ static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
 static HRESULT WINAPI DPNice_DeletePlayer (DPSP_DELETEPLAYERDATA* data) {
   printf("DeletePlayer\n");
   printf(
-    "(%d,0x%08x,%p) stub\n",
+    "(%ld,0x%08lx,%p) stub\n",
     data->idPlayer, data->dwFlags, data->lpISP
   );
   return DPERR_UNSUPPORTED;
@@ -81,7 +81,7 @@ static HRESULT WINAPI DPNice_DeletePlayer (DPSP_DELETEPLAYERDATA* data) {
 static HRESULT WINAPI DPNice_GetAddress (DPSP_GETADDRESSDATA* data) {
   printf("GetAddress\n");
   printf(
-    "(%d,0x%08x,%p,%p,%p) stub\n",
+    "(%ld,0x%08lx,%p,%p,%p) stub\n",
     data->idPlayer, data->dwFlags, data->lpAddress,
     data->lpdwAddressSize, data->lpISP
   );
@@ -91,7 +91,7 @@ static HRESULT WINAPI DPNice_GetAddress (DPSP_GETADDRESSDATA* data) {
 static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
   printf("GetCaps\n");
   printf(
-    "(%d,%p,0x%08x,%p)\n",
+    "(%ld,%p,0x%08lx,%p)\n",
     data->idPlayer, data->lpCaps, data->dwFlags, data->lpISP
   );
   return DPERR_UNSUPPORTED;
@@ -106,7 +106,7 @@ void startThread (void*) {
 static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   printf("Open\n");
   printf(
-    "(%u,%p,%p,%u,0x%08x,0x%08x) stub\n",
+    "(%u,%p,%p,%u,0x%08lx,0x%08lx) stub\n",
     data->bCreate, data->lpSPMessageHeader, data->lpISP,
     data->bReturnStatus, data->dwOpenFlags, data->dwSessionFlags
   );
@@ -140,7 +140,7 @@ static HRESULT WINAPI DPNice_GetAddressChoices (DPSP_GETADDRESSCHOICESDATA* data
 static HRESULT WINAPI DPNice_SendEx (DPSP_SENDEXDATA* data) {
   printf("SendEx\n");
   printf(
-    "(%p,0x%08x,%d,%d,%p,%d,%d,%d,%d,%p,%p,%u) stub\n",
+    "(%p,0x%08lx,%ld,%ld,%p,%ld,%ld,%ld,%ld,%p,%p,%u) stub\n",
     data->lpISP, data->dwFlags, data->idPlayerTo, data->idPlayerFrom,
     data->lpSendBuffers, data->cBuffers, data->dwMessageSize,
     data->dwPriority, data->dwTimeout, data->lpDPContext,
@@ -152,7 +152,7 @@ static HRESULT WINAPI DPNice_SendEx (DPSP_SENDEXDATA* data) {
 static HRESULT WINAPI DPNice_SendToGroupEx (DPSP_SENDTOGROUPEXDATA* data) {
   printf("SendToGroupEx\n");
   printf(
-    "(%p,0x%08x,%d,%d,%p,%d,%d,%d,%d,%p,%p) stub\n",
+    "(%p,0x%08lx,%ld,%ld,%p,%ld,%ld,%ld,%ld,%p,%p) stub\n",
     data->lpISP, data->dwFlags, data->idGroupTo, data->idPlayerFrom,
     data->lpSendBuffers, data->cBuffers, data->dwMessageSize,
     data->dwPriority, data->dwTimeout, data->lpDPContext,
@@ -164,7 +164,7 @@ static HRESULT WINAPI DPNice_SendToGroupEx (DPSP_SENDTOGROUPEXDATA* data) {
 static HRESULT WINAPI DPNice_Cancel (DPSP_CANCELDATA* data) {
   printf("Cancel\n");
   printf(
-    "(%p,0x%08x,%p,%d,0x%08x,0x%08x) stub\n",
+    "(%p,0x%08lx,%p,%ld,0x%08lx,0x%08lx) stub\n",
     data->lpISP, data->dwFlags, data->lprglpvSPMsgID, data->cSPMsgID,
     data->dwMinPriority, data->dwMaxPriority
   );
@@ -174,7 +174,7 @@ static HRESULT WINAPI DPNice_Cancel (DPSP_CANCELDATA* data) {
 static HRESULT WINAPI DPNice_GetMessageQueue (DPSP_GETMESSAGEQUEUEDATA* data) {
   printf("GetMessageQueue\n");
   printf(
-    "(%p,0x%08x,%d,%d,%p,%p) stub\n",
+    "(%p,0x%08lx,%ld,%ld,%p,%p) stub\n",
     data->lpISP, data->dwFlags, data->idFrom, data->idTo,
     data->lpdwNumMsgs, data->lpdwNumBytes
   );
