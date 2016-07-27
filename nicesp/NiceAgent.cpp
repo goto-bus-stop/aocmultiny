@@ -2,6 +2,11 @@
 
 namespace nicesp {
 
+NiceCredentials::~NiceCredentials () {
+  g_free(this->ufrag);
+  g_free(this->pwd);
+}
+
 NiceAgent::NiceAgent (GMainContext* ctx, NiceCompatibility compat)
     :
     na(nice_agent_new(ctx, compat)) {

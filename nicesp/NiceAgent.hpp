@@ -12,10 +12,7 @@ typedef struct NiceCredentials {
   gchar* ufrag;
   gchar* pwd;
 
-  ~NiceCredentials () {
-    g_free(this->ufrag);
-    g_free(this->pwd);
-  };
+  ~NiceCredentials ();
 } NiceCredentials;
 
 class NiceAgent {

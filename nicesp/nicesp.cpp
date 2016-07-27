@@ -94,50 +94,19 @@ static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
 }
 
 static void startThread (void*) {
+  printf("loop start\n");
   g_main_loop_run(gloop);
+  printf("loop complete\n");
   g_main_loop_unref(gloop);
   _endthread();
 }
 
-static const gchar *candidate_type_name[] = {"host", "srflx", "prflx", "relay"};
-static int print_local_data (NiceAgent* agent, guint _stream_id, guint component_id) {
-  auto creds = agent->getLocalCredentials(_stream_id);
-  if (creds != nullptr) {
-    auto cands = agent->getLocalCandidates(_stream_id, component_id);
-    if (cands != NULL) {
-      printf("%s %s", creds->ufrag, creds->pwd);
-
-      for (auto item = cands; item; item = item->next) {
-        auto c = static_cast<NiceCandidate*>(item->data);
-        gchar ipaddr[INET6_ADDRSTRLEN];
-
-        nice_address_to_string(&c->addr, ipaddr);
-
-        // (foundation),(prio),(addr),(port),(type)
-        printf(" %s,%u,%s,%u,%s",
-            c->foundation,
-            c->priority,
-            ipaddr,
-            nice_address_get_port(&c->addr),
-            candidate_type_name[c->type]);
-      }
-
-      g_slist_free_full(cands, (GDestroyNotify) &nice_candidate_free);
-    }
-    delete creds;
-  }
-  printf("\n");
-  return EXIT_SUCCESS;
-}
-
-static void onCandidates (NiceAgent* agent, guint _stream_id, gpointer data) {
+static void onCandidates (::NiceAgent* rawAgent, guint streamId, gpointer data) {
   printf("SIGNAL candidate gathering done\n");
+  NiceAgent agent (rawAgent);
 
-  // Candidate gathering is done. Send our local candidates on stdout
-  printf("Copy this line to remote client:\n");
-  printf("\n  ");
-  print_local_data(agent, _stream_id, 1);
-  printf("\n");
+  printf("\nSDP\n===\n");
+  printf("%s===\n\n", agent.generateLocalSdp());
 }
 
 static void onReceive (
@@ -157,10 +126,20 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
     data->bReturnStatus, data->dwOpenFlags, data->dwSessionFlags
   );
 
+  printf("Network init\n");
+  g_networking_init();
+
+  gloop = g_main_loop_new(NULL, FALSE);
+
+  printf("new agent\n");
+  agent = new NiceAgent(g_main_loop_get_context(gloop));
+
+  provider->SetSPData(agent, sizeof(NiceAgent), DPSET_LOCAL);
+
   // Set the STUN settings and controlling mode
-  g_object_set(agent->unwrap(), "stun-server", "stun.l.google.com");
-  g_object_set(agent->unwrap(), "stun-server-port", 19302);
-  g_object_set(agent->unwrap(), "controlling-mode", 0);
+  g_object_set(agent->unwrap(), "stun-server", "stun.l.google.com", NULL);
+  g_object_set(agent->unwrap(), "stun-server-port", 19302, NULL);
+  g_object_set(agent->unwrap(), "controlling-mode", 0, NULL);
 
   // Connect to the signals
   g_signal_connect(agent->unwrap(), "candidate-gathering-done",
@@ -174,7 +153,7 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
 
   _beginthread(&startThread, 0, nullptr);
 
-  return DPERR_UNSUPPORTED;
+  return DP_OK;
 }
 
 static HRESULT WINAPI DPNice_CloseEx (DPSP_CLOSEDATA* data) {
@@ -282,19 +261,10 @@ static HRESULT init (SPINITDATA* spData) {
     return DPERR_UNAVAILABLE;
   }
 
-  g_networking_init();
-
-  gloop = g_main_loop_new(NULL, FALSE);
-
-  agent = new NiceAgent(g_main_loop_get_context(gloop));
-
-  if (agent == NULL) {
-    printf("Could not create Nice agent\n");
-    return DPERR_UNAVAILABLE;
-  }
-
   /* Assign callback functions */
   setup_callbacks(spData->lpCB);
+
+  printf("Have callbacks\n");
 
   /* dplay needs to know the size of the header */
   spData->dwSPHeaderSize = 0;
