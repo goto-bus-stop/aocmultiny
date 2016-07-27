@@ -82,7 +82,7 @@ static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
   return DPERR_UNSUPPORTED;
 }
 
-void startThread (void*) {
+static void startThread (void*) {
   g_main_loop_run(gloop);
   g_main_loop_unref(gloop);
   _endthread();
@@ -258,7 +258,7 @@ static void setup_callbacks (DPSP_SPCALLBACKS* callbacks) {
   callbacks->Shutdown = NULL;
 }
 
-HRESULT init (SPINITDATA* spData) {
+static HRESULT init (SPINITDATA* spData) {
   printf("SPInit\n");
 
   auto guid = static_cast<wchar_t*>(calloc(51, sizeof(wchar_t)));
@@ -286,7 +286,8 @@ HRESULT init (SPINITDATA* spData) {
   setup_callbacks(spData->lpCB);
 
   /* dplay needs to know the size of the header */
-  spData->dwSPHeaderSize = sizeof(DPSP_MSG_HEADER);
+  spData->dwSPHeaderSize = 0;
+  spData->dwSPVersion = DPSP_MAJORVERSIONMASK & DPSP_MAJORVERSION;
 
   return DP_OK;
 }
