@@ -79,7 +79,18 @@ static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
     "(%ld,%p,0x%08lx,%p)\n",
     data->idPlayer, data->lpCaps, data->dwFlags, data->lpISP
   );
-  return DPERR_UNSUPPORTED;
+
+  data->lpCaps->dwFlags = DPCAPS_ASYNCSUPPORTED;
+  data->lpCaps->dwMaxBufferSize = 1024;
+  data->lpCaps->dwMaxQueueSize = 0;
+  data->lpCaps->dwMaxPlayers = 65536;
+  data->lpCaps->dwHundredBaud = 0;
+  data->lpCaps->dwLatency = 50;
+  data->lpCaps->dwMaxLocalPlayers = 65536;
+  data->lpCaps->dwHeaderLength = 0;
+  data->lpCaps->dwTimeout = 500;
+
+  return DP_OK;
 }
 
 static void startThread (void*) {
