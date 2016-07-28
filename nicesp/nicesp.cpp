@@ -44,6 +44,38 @@ static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
   return DPERR_UNSUPPORTED;
 }
 
+static void onCandidates (InternalAgent rawAgent, guint streamId, gpointer data) {
+  printf("SIGNAL candidate gathering done\n");
+  NiceAgent agent (rawAgent);
+  auto sdp = agent.generateLocalStreamSdp(streamId, true);
+
+  printf("\nSDP\n===\n");
+  printf("%s\n===\n\n", sdp);
+}
+
+static void onReceive (
+  InternalAgent agent,
+  guint streamId,
+  guint componentId,
+  guint len,
+  gchar* buf,
+  gpointer data
+) {
+  printf("received %s from %d:%d\n", buf, streamId, componentId);
+}
+
+static void onStateChange (
+  InternalAgent rawAgent,
+  guint streamId,
+  guint componentId,
+  guint state,
+  gpointer data
+) {
+  if (state == NICE_COMPONENT_STATE_READY) {
+    printf("Ready %d:%d\n", streamId, componentId);
+  }
+}
+
 static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
   printf("CreatePlayer\n");
   printf(
@@ -101,23 +133,6 @@ static void startThread (void*) {
   _endthread();
 }
 
-static void onCandidates (::NiceAgent* rawAgent, guint streamId, gpointer data) {
-  printf("SIGNAL candidate gathering done\n");
-  NiceAgent agent (rawAgent);
-
-  printf("\nSDP\n===\n");
-  printf("%s===\n\n", agent.generateLocalSdp());
-}
-
-static void onReceive (
-  ::NiceAgent* agent,
-  guint streamId,
-  guint componentId,
-  guint len,
-  gchar* buf,
-  gpointer data
-) {}
-
 static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   printf("Open\n");
   printf(
@@ -134,22 +149,14 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   printf("new agent\n");
   agent = new NiceAgent(g_main_loop_get_context(gloop));
 
-  provider->SetSPData(agent, sizeof(NiceAgent), DPSET_LOCAL);
-
   // Set the STUN settings and controlling mode
   g_object_set(agent->unwrap(), "stun-server", "stun.l.google.com", NULL);
   g_object_set(agent->unwrap(), "stun-server-port", 19302, NULL);
-  g_object_set(agent->unwrap(), "controlling-mode", 0, NULL);
+  g_object_set(agent->unwrap(), "controlling-mode", data->bCreate, NULL);
 
   // Connect to the signals
-  g_signal_connect(agent->unwrap(), "candidate-gathering-done",
-      G_CALLBACK(onCandidates), NULL);
-
-  auto stream = agent->addStream(1);
-  stream->attachRecv(1, g_main_loop_get_context(gloop), onReceive, NULL);
-
-  printf("Gathering candidates\n");
-  stream->gatherCandidates();
+  g_signal_connect(agent->unwrap(), "candidate-gathering-done", G_CALLBACK(onCandidates), NULL);
+  g_signal_connect(agent->unwrap(), "component-state-changed", G_CALLBACK(onStateChange), NULL);
 
   _beginthread(&startThread, 0, nullptr);
 
