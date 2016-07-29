@@ -1,32 +1,42 @@
-#include "NiceAgent.hpp"
+#include "GameSession.hpp"
 #include "nicesp.hpp"
 #include <gio/gnetworking.h>
-#include <stdio.h>
-#include <process.h>
+#include <string>
 
 using namespace std;
 
-const GUID DPSPGUID_NICE = { 0xe2dd8ebe, 0x1f03, 0x43b7, { 0x8d, 0x92, 0x9c, 0x6c, 0x2f, 0x5c, 0x44, 0x26 } };
+#define SIGNALING_HOST "localhost"
+#define SIGNALING_PORT 7788
+
+static char* gtc (GUID guid) {
+  auto str = static_cast<wchar_t*>(malloc(51 * sizeof(wchar_t)));
+  StringFromGUID2(guid, str, 50);
+  auto l = wcslen(str);
+  auto result = new char[l];
+  for (uint32_t i = 0; i < l; i++) {
+    result[i] = static_cast<char>(str[i]);
+  }
+  return result;
+}
 
 namespace nicesp {
 
-static GMainLoop* gloop;
-static nicesp::NiceAgent* agent;
+GMainLoop* gloop;
+GameSession* session;
 
 static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
-  printf("EnumSessions\n");
-  printf(
-    "(%p,%ld,%p,%u) stub\n",
+  g_message(
+    "EnumSessions (%p,%ld,%p,%u) stub",
     data->lpMessage, data->dwMessageSize,
     data->lpISP, data->bReturnStatus
   );
+
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
-  printf("Reply\n");
-  printf(
-    "(%p,%p,%ld,%ld,%p) stub\n",
+  g_message(
+    "Reply (%p,%p,%ld,%ld,%p) stub",
     data->lpSPMessageHeader, data->lpMessage, data->dwMessageSize,
     data->idNameServer, data->lpISP
   );
@@ -34,71 +44,99 @@ static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
-  printf("Send\n");
-  printf(
-    "(0x%08lx,%ld,%ld,%p,%ld,%u,%p) stub\n",
+  g_message(
+    "Send (0x%08lx,%ld,%ld,%p,%ld,%u,%p)",
     data->dwFlags, data->idPlayerTo, data->idPlayerFrom,
     data->lpMessage, data->dwMessageSize,
     data->bSystemMessage, data->lpISP
   );
-  return DPERR_UNSUPPORTED;
+
+  auto player = session->getPlayerById(data->idPlayerTo);
+  auto stream = player->agent->getStream(1);
+
+  stream->send(1, data->dwMessageSize, static_cast<gchar*>(data->lpMessage));
+
+  return DP_OK;
 }
 
-static void onCandidates (InternalAgent rawAgent, guint streamId, gpointer data) {
-  printf("SIGNAL candidate gathering done\n");
-  NiceAgent agent (rawAgent);
-  auto sdp = agent.generateLocalStreamSdp(streamId, true);
+struct SessionData {
+  GameSession* session;
+  DPID player;
+};
 
-  printf("\nSDP\n===\n");
-  printf("%s\n===\n\n", sdp);
-}
+static void* signalingServerThread (void* data) {
+  CoInitialize(NULL);
+  auto sdata = reinterpret_cast<SessionData*>(data);
+  auto session = sdata->session;
+  auto playerId = sdata->player;
 
-static void onReceive (
-  InternalAgent agent,
-  guint streamId,
-  guint componentId,
-  guint len,
-  gchar* buf,
-  gpointer data
-) {
-  printf("received %s from %d:%d\n", buf, streamId, componentId);
-}
+  auto client = g_socket_client_new();
+  auto connection = g_socket_client_connect_to_host(client, (gchar*) SIGNALING_HOST, SIGNALING_PORT, NULL, NULL);
+  auto sendStream = g_io_stream_get_output_stream(G_IO_STREAM(connection));
+  auto inputStream = g_io_stream_get_input_stream(G_IO_STREAM(connection));
+  auto receiveStream = g_data_input_stream_new(inputStream);
 
-static void onStateChange (
-  InternalAgent rawAgent,
-  guint streamId,
-  guint componentId,
-  guint state,
-  gpointer data
-) {
-  if (state == NICE_COMPONENT_STATE_READY) {
-    printf("Ready %d:%d\n", streamId, componentId);
+  session->useSignalingIOStreams(receiveStream, sendStream);
+
+  auto authString = g_strdup_printf("create session:%s,id:%d", gtc(session->getSessionGuid()), static_cast<int>(playerId));
+  session->sendSignalingMessage(authString);
+  g_free(authString);
+
+  gchar* line = nullptr;
+  gsize* size = nullptr;
+  g_message("waiting ...");
+  // Very crude please don't hurt me
+  while ((line = g_data_input_stream_read_line(receiveStream, size, NULL, NULL)) != NULL) {
+    string sline = line;
+    g_message("got line %s", sline.c_str());
+    if (sline.substr(0, 6) == "player") {
+      auto idStr = stoi(sline.substr(10));
+      g_message("new player %d", idStr);
+      session->processNewPlayer(idStr);
+    } else if (sline.substr(0, 3) == "sdp") {
+      auto parts = sline.substr(11);
+      auto sdpStart = parts.find(",sdp:");
+      auto remoteId = stoi(parts.substr(0, sdpStart));
+      auto remoteSdp = parts.substr(sdpStart + 5);
+      session->processSdp(remoteId, remoteSdp.c_str());
+    }
+    g_message("waiting ...");
   }
+  g_message("endthread");
+  CoUninitialize();
+  g_thread_exit(NULL);
+  return nullptr;
 }
 
 static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
-  printf("CreatePlayer\n");
-  printf(
-    "(%ld,0x%08lx,%p,%p) stub\n",
+  g_message(
+    "CreatePlayer (%ld,0x%08lx,%p,%p)",
     data->idPlayer, data->dwFlags,
     data->lpSPMessageHeader, data->lpISP
   );
-  return DPERR_UNSUPPORTED;
+
+  if (data->dwFlags & DPLAYI_PLAYER_PLAYERLOCAL) {
+    // Creating our local player, register with the signaling server.
+    auto sdata = new SessionData;
+    sdata->session = session;
+    sdata->player = data->idPlayer;
+    g_thread_new("signaling server", &signalingServerThread, sdata);
+  }
+
+  return DP_OK;
 }
 
 static HRESULT WINAPI DPNice_DeletePlayer (DPSP_DELETEPLAYERDATA* data) {
-  printf("DeletePlayer\n");
-  printf(
-    "(%ld,0x%08lx,%p) stub\n",
+  g_message(
+    "DeletePlayer (%ld,0x%08lx,%p) stub",
     data->idPlayer, data->dwFlags, data->lpISP
   );
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_GetAddress (DPSP_GETADDRESSDATA* data) {
-  printf("GetAddress\n");
-  printf(
-    "(%ld,0x%08lx,%p,%p,%p) stub\n",
+  g_message(
+    "GetAddress (%ld,0x%08lx,%p,%p,%p) stub",
     data->idPlayer, data->dwFlags, data->lpAddress,
     data->lpdwAddressSize, data->lpISP
   );
@@ -106,9 +144,8 @@ static HRESULT WINAPI DPNice_GetAddress (DPSP_GETADDRESSDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
-  printf("GetCaps\n");
-  printf(
-    "(%ld,%p,0x%08lx,%p)\n",
+  g_message(
+    "GetCaps (%ld,%p,0x%08lx,%p)",
     data->idPlayer, data->lpCaps, data->dwFlags, data->lpISP
   );
 
@@ -125,70 +162,60 @@ static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
   return DP_OK;
 }
 
-static void startThread (void*) {
-  printf("loop start\n");
+static void* startThread (void*) {
+  CoInitialize(NULL);
+
+  g_message("loop start");
   g_main_loop_run(gloop);
-  printf("loop complete\n");
+  g_message("loop complete");
   g_main_loop_unref(gloop);
-  _endthread();
+
+  CoUninitialize();
+  g_thread_exit(NULL);
+  return nullptr;
 }
 
 static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
-  printf("Open\n");
-  printf(
-    "(%u,%p,%p,%u,0x%08lx,0x%08lx) stub\n",
+  g_message(
+    "Open (%u,%p,%p,%u,0x%08lx,0x%08lx)",
     data->bCreate, data->lpSPMessageHeader, data->lpISP,
     data->bReturnStatus, data->dwOpenFlags, data->dwSessionFlags
   );
 
-  printf("Network init\n");
-  g_networking_init();
+  g_message("new session");
+  // TODO use the actual guid of the directplay session
+  GUID sessionGuid;
+  CoCreateGuid(&sessionGuid);
+  // TODO store in DirectPlay SPData (the pointers got weird when I tried this)
+  session = new GameSession(sessionGuid, !!data->bCreate);
 
-  gloop = g_main_loop_new(NULL, FALSE);
-
-  printf("new agent\n");
-  agent = new NiceAgent(g_main_loop_get_context(gloop));
-
-  // Set the STUN settings and controlling mode
-  g_object_set(agent->unwrap(), "stun-server", "stun.l.google.com", NULL);
-  g_object_set(agent->unwrap(), "stun-server-port", 19302, NULL);
-  g_object_set(agent->unwrap(), "controlling-mode", data->bCreate, NULL);
-
-  // Connect to the signals
-  g_signal_connect(agent->unwrap(), "candidate-gathering-done", G_CALLBACK(onCandidates), NULL);
-  g_signal_connect(agent->unwrap(), "component-state-changed", G_CALLBACK(onStateChange), NULL);
-
-  _beginthread(&startThread, 0, nullptr);
+  g_thread_new("main loop", &startThread, NULL);
 
   return DP_OK;
 }
 
 static HRESULT WINAPI DPNice_CloseEx (DPSP_CLOSEDATA* data) {
-  printf("CloseEx\n");
-  printf("(%p) stub\n", data->lpISP);
+  g_message("CloseEx (%p) stub", data->lpISP);
   g_main_loop_quit(gloop);
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_ShutdownEx (DPSP_SHUTDOWNDATA* data) {
-  printf("ShutdownEx\n");
-  printf("(%p) stub\n", data->lpISP);
+  g_message("ShutdownEx (%p) stub", data->lpISP);
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_GetAddressChoices (DPSP_GETADDRESSCHOICESDATA* data) {
-  printf("GetAddressChoices\n");
-  printf(
-    "(%p,%p,%p) stub\n",
+  g_message(
+    "GetAddressChoices (%p,%p,%p) stub",
     data->lpAddress, data->lpdwAddressSize, data->lpISP
   );
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_SendEx (DPSP_SENDEXDATA* data) {
-  printf("SendEx\n");
-  printf(
-    "(%p,0x%08lx,%ld,%ld,%p,%ld,%ld,%ld,%ld,%p,%p,%u) stub\n",
+  g_message(
+    "SendEx (%p,0x%08lx,%ld,%ld,%p,%ld,%ld,%ld,%ld,%p,%p,%u) stub",
     data->lpISP, data->dwFlags, data->idPlayerTo, data->idPlayerFrom,
     data->lpSendBuffers, data->cBuffers, data->dwMessageSize,
     data->dwPriority, data->dwTimeout, data->lpDPContext,
@@ -198,9 +225,8 @@ static HRESULT WINAPI DPNice_SendEx (DPSP_SENDEXDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_SendToGroupEx (DPSP_SENDTOGROUPEXDATA* data) {
-  printf("SendToGroupEx\n");
-  printf(
-    "(%p,0x%08lx,%ld,%ld,%p,%ld,%ld,%ld,%ld,%p,%p) stub\n",
+  g_message(
+    "SendToGroupEx (%p,0x%08lx,%ld,%ld,%p,%ld,%ld,%ld,%ld,%p,%p) stub",
     data->lpISP, data->dwFlags, data->idGroupTo, data->idPlayerFrom,
     data->lpSendBuffers, data->cBuffers, data->dwMessageSize,
     data->dwPriority, data->dwTimeout, data->lpDPContext,
@@ -210,9 +236,8 @@ static HRESULT WINAPI DPNice_SendToGroupEx (DPSP_SENDTOGROUPEXDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_Cancel (DPSP_CANCELDATA* data) {
-  printf("Cancel\n");
-  printf(
-    "(%p,0x%08lx,%p,%ld,0x%08lx,0x%08lx) stub\n",
+  g_message(
+    "Cancel (%p,0x%08lx,%p,%ld,0x%08lx,0x%08lx) stub",
     data->lpISP, data->dwFlags, data->lprglpvSPMsgID, data->cSPMsgID,
     data->dwMinPriority, data->dwMaxPriority
   );
@@ -220,9 +245,8 @@ static HRESULT WINAPI DPNice_Cancel (DPSP_CANCELDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_GetMessageQueue (DPSP_GETMESSAGEQUEUEDATA* data) {
-  printf("GetMessageQueue\n");
-  printf(
-    "(%p,0x%08lx,%ld,%ld,%p,%p) stub\n",
+  g_message(
+    "GetMessageQueue (%p,0x%08lx,%ld,%ld,%p,%p) stub",
     data->lpISP, data->dwFlags, data->idFrom, data->idTo,
     data->lpdwNumMsgs, data->lpdwNumBytes
   );
@@ -256,11 +280,13 @@ static void setup_callbacks (DPSP_SPCALLBACKS* callbacks) {
 }
 
 static HRESULT init (SPINITDATA* spData) {
-  printf("SPInit\n");
+  g_message("SPInit");
+
+  auto provider = spData->lpISP;
 
   auto guid = static_cast<wchar_t*>(calloc(51, sizeof(wchar_t)));
   StringFromGUID2(*spData->lpGuid, guid, 50);
-  wprintf(L"Initializing library for %ls (%ls)\n", guid, spData->lpszName);
+  g_message("Initializing library for %ls (%ls)", guid, spData->lpszName);
   free(guid);
 
   /* We only support NICE service */
@@ -271,7 +297,9 @@ static HRESULT init (SPINITDATA* spData) {
   /* Assign callback functions */
   setup_callbacks(spData->lpCB);
 
-  printf("Have callbacks\n");
+  g_message("Have callbacks");
+
+  gloop = g_main_loop_new(NULL, FALSE);
 
   /* dplay needs to know the size of the header */
   spData->dwSPHeaderSize = 0;
@@ -287,8 +315,7 @@ __declspec(dllexport) HRESULT __cdecl SPInit (SPINITDATA* spData) {
 }
 
 BOOL WINAPI DllMain (HINSTANCE instance, DWORD reason, void* reserved) {
-  printf("DllMain\n");
-  printf("(0x%p, %ld, %p)\n", instance, reason, reserved);
+  g_message("DllMain (0x%p, %ld, %p)", instance, reason, reserved);
 
   switch (reason) {
   case DLL_PROCESS_ATTACH:
