@@ -28,7 +28,7 @@ bool DPSessionDesc::isHost () {
 }
 
 void DPSessionDesc::alloc () {
-  auto sessionDesc = static_cast<DPSESSIONDESC2*>(malloc(sizeof(DPSESSIONDESC2)));
+  auto sessionDesc = new DPSESSIONDESC2;
   sessionDesc->dwSize = sizeof(DPSESSIONDESC2);
   sessionDesc->dwFlags = 0;
   wcout << "[DPSessionDesc::alloc] guidInstance: " << GUIDToString(guidInstance) << endl;
@@ -58,7 +58,7 @@ DPSESSIONDESC2* DPSessionDesc::unwrap () {
 
 DPSessionDesc::~DPSessionDesc () {
   free(this->dpSessionDesc->lpszSessionNameA);
-  free(this->dpSessionDesc);
+  delete this->dpSessionDesc;
 }
 
 }

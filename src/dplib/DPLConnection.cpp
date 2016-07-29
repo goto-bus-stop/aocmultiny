@@ -17,7 +17,7 @@ DPLConnection::DPLConnection (DPAddress address, DPSessionDesc* sessionDesc, DPN
 }
 
 void DPLConnection::alloc () {
-  auto connection = static_cast<DPLCONNECTION*>(malloc(sizeof(DPLCONNECTION)));
+  auto connection = new DPLCONNECTION;
   connection->dwSize = sizeof(DPLCONNECTION);
   connection->dwFlags = this->sessionDesc->isHost() ?
     DPLCONNECTION_CREATESESSION : DPLCONNECTION_JOINSESSION;
@@ -35,7 +35,7 @@ DPLCONNECTION* DPLConnection::unwrap () {
 }
 
 DPLConnection::~DPLConnection () {
-  free(this->dpConnection);
+  delete this->dpConnection;
 }
 
 }

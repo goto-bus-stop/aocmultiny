@@ -13,7 +13,7 @@ DPName::DPName (std::string name)
 }
 
 void DPName::alloc () {
-  this->dpName = static_cast<DPNAME*>(malloc(sizeof(DPNAME)));
+  this->dpName = new DPNAME;
 
   auto length = this->name.length();
   auto nameStr = static_cast<char*>(calloc(length + 1, sizeof(char)));
@@ -31,7 +31,7 @@ DPNAME* DPName::unwrap () {
 
 DPName::~DPName () {
   free(this->dpName->lpszLongNameA);
-  free(this->dpName);
+  delete this->dpName;
 }
 
 }
