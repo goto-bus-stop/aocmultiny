@@ -20,6 +20,7 @@ public:
   NiceAgent* agent;
 
   Player (GameSession* session, DPID id);
+  ~Player ();
   GameSession* getSession ();
 };
 
@@ -39,6 +40,7 @@ public:
   GUID getSessionGuid ();
 
   void processNewPlayer (DPID id);
+  void deletePlayer (DPID id);
   void processSdp (DPID id, const gchar* sdp);
   Player* getPlayerById (DPID id);
 };

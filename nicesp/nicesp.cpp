@@ -74,9 +74,12 @@ static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
 
 static HRESULT WINAPI DPNice_DeletePlayer (DPSP_DELETEPLAYERDATA* data) {
   g_message(
-    "DeletePlayer (%ld,0x%08lx,%p) stub",
+    "DeletePlayer (%ld,0x%08lx,%p)",
     data->idPlayer, data->dwFlags, data->lpISP
   );
+
+  session->deletePlayer(data->idPlayer);
+
   return DPERR_UNSUPPORTED;
 }
 

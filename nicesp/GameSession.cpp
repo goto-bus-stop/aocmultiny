@@ -54,6 +54,10 @@ Player::Player (GameSession* session, DPID id)
   g_signal_connect(this->agent->unwrap(), "component-state-changed", G_CALLBACK(onNiceStateChange), this);
 }
 
+Player::~Player () {
+  g_object_unref(this->agent);
+}
+
 GameSession* Player::getSession () {
   return this->session;
 }
@@ -98,6 +102,17 @@ void GameSession::processNewPlayer (DPID id) {
   this->players.push_back(player);
 
   stream->gatherCandidates();
+}
+
+void GameSession::deletePlayer (DPID id) {
+  for (int i = 0, l = this->players.size(); i < l; i++) {
+    auto player = this->players[i];
+    if (player->id == id) {
+      this->players.erase(this->players.begin() + i);
+      delete player;
+      return;
+    }
+  }
 }
 
 void GameSession::processSdp (DPID id, const gchar* sdp) {
