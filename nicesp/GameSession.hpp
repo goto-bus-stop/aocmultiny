@@ -1,5 +1,6 @@
 #pragma once
 #include "NiceAgent.hpp"
+#include "SignalingConnection.hpp"
 #include <dplay.h>
 #include <vector>
 
@@ -27,18 +28,15 @@ private:
   GUID sessionGuid;
   vector<Player*> players;
   bool isHost;
-
-  GDataInputStream* receiveStream;
-  GOutputStream* sendStream;
+  SignalingConnection* signaling;
 public:
-  GameSession (GUID sessionGuid, bool isHost);
+
+  GameSession (SignalingConnection* signaling, GUID sessionGuid, bool isHost);
   ~GameSession ();
 
   NiceAgent* getPlayerAgent (DPID id);
+  SignalingConnection* getSignalingConnection ();
   GUID getSessionGuid ();
-
-  void useSignalingIOStreams (GDataInputStream* input, GOutputStream* output);
-  void sendSignalingMessage (gchar* message);
 
   void processNewPlayer (DPID id);
   void processSdp (DPID id, const gchar* sdp);

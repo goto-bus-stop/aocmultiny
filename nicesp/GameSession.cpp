@@ -4,18 +4,15 @@
 namespace nicesp {
 
 static void onNiceCandidates (InternalAgent, guint streamId, gpointer data) {
-  printf("SIGNAL candidate gathering done\n");
+  g_message("SIGNAL candidate gathering done\n");
   auto player = reinterpret_cast<Player*>(data);
   auto sdp = player->agent->generateLocalSdp();
 
-  auto sdp64 = g_base64_encode((const guchar*) sdp, strlen(sdp));
-  auto sdpString = g_strdup_printf("sdp to:%d,sdp:%s\n", player->id, sdp64);
-  player->getSession()->sendSignalingMessage(sdpString);
-  g_free(sdp64);
-  g_free(sdpString);
+  auto signaling = player->getSession()->getSignalingConnection();
+  signaling->sendSdp(player->id, sdp);
 
-  printf("\nSDP\n===\n");
-  printf("%s\n===\n\n", sdp);
+  g_message("\nSDP\n===\n");
+  g_message("%s\n===\n\n", sdp);
 }
 
 static void onNiceStateChange (
@@ -25,10 +22,10 @@ static void onNiceStateChange (
   guint state,
   gpointer data
 ) {
-  printf("SIGNAL statechange %d %d %d\n", streamId, componentId, state);
+  g_message("SIGNAL statechange %d %d %d\n", streamId, componentId, state);
   auto player = reinterpret_cast<Player*>(data);
   if (state == NICE_COMPONENT_STATE_READY) {
-    printf("Ready %d\n", player->id);
+    g_message("Ready %d\n", static_cast<int>(player->id));
     player->agent->send(streamId, componentId, 3, "hoi");
   }
 }
@@ -40,7 +37,7 @@ static void onReceiveNicePacket (
   gpointer data
 ) {
   auto player = reinterpret_cast<Player*>(data);
-  printf("received %s from %d\n", buf, player->id);
+  g_message("received %s from %d\n", buf, player->id);
 }
 
 Player::Player (GameSession* session, DPID id)
@@ -61,11 +58,18 @@ GameSession* Player::getSession () {
   return this->session;
 }
 
-GameSession::GameSession (GUID sessionGuid, bool isHost)
+GameSession::GameSession (SignalingConnection* signaling, GUID sessionGuid, bool isHost)
     :
     sessionGuid(sessionGuid),
+    players(vector<Player*>()),
     isHost(isHost),
-    players(vector<Player*>()) {
+    signaling(signaling) {
+  signaling->onNewPlayer = [this] (auto id) {
+    this->processNewPlayer(id);
+  };
+  signaling->onSdp = [this] (auto id, auto sdp) {
+    this->processSdp(id, sdp);
+  };
 }
 
 GameSession::~GameSession () {
@@ -76,17 +80,12 @@ NiceAgent* GameSession::getPlayerAgent (DPID id) {
   return this->getPlayerById(id)->agent;
 }
 
+SignalingConnection* GameSession::getSignalingConnection () {
+  return this->signaling;
+}
+
 GUID GameSession::getSessionGuid () {
   return this->sessionGuid;
-}
-
-void GameSession::useSignalingIOStreams (GDataInputStream* input, GOutputStream* output) {
-  this->receiveStream = input;
-  this->sendStream = output;
-}
-
-void GameSession::sendSignalingMessage (gchar* message) {
-  g_output_stream_write(this->sendStream, message, strlen(message), NULL, NULL);
 }
 
 void GameSession::processNewPlayer (DPID id) {

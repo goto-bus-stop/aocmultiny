@@ -5,19 +5,8 @@
 
 using namespace std;
 
-#define SIGNALING_HOST "localhost"
-#define SIGNALING_PORT 7788
-
-static char* gtc (GUID guid) {
-  auto str = static_cast<wchar_t*>(malloc(51 * sizeof(wchar_t)));
-  StringFromGUID2(guid, str, 50);
-  auto l = wcslen(str);
-  auto result = new char[l];
-  for (uint32_t i = 0; i < l; i++) {
-    result[i] = static_cast<char>(str[i]);
-  }
-  return result;
-}
+#define DEFAULT_SIGNALING_HOST "localhost"
+#define DEFAULT_SIGNALING_PORT 7788
 
 namespace nicesp {
 
@@ -64,50 +53,6 @@ struct SessionData {
   DPID player;
 };
 
-static void* signalingServerThread (void* data) {
-  CoInitialize(NULL);
-  auto sdata = reinterpret_cast<SessionData*>(data);
-  auto session = sdata->session;
-  auto playerId = sdata->player;
-
-  auto client = g_socket_client_new();
-  auto connection = g_socket_client_connect_to_host(client, (gchar*) SIGNALING_HOST, SIGNALING_PORT, NULL, NULL);
-  auto sendStream = g_io_stream_get_output_stream(G_IO_STREAM(connection));
-  auto inputStream = g_io_stream_get_input_stream(G_IO_STREAM(connection));
-  auto receiveStream = g_data_input_stream_new(inputStream);
-
-  session->useSignalingIOStreams(receiveStream, sendStream);
-
-  auto authString = g_strdup_printf("create session:%s,id:%d", gtc(session->getSessionGuid()), static_cast<int>(playerId));
-  session->sendSignalingMessage(authString);
-  g_free(authString);
-
-  gchar* line = nullptr;
-  gsize* size = nullptr;
-  g_message("waiting ...");
-  // Very crude please don't hurt me
-  while ((line = g_data_input_stream_read_line(receiveStream, size, NULL, NULL)) != NULL) {
-    string sline = line;
-    g_message("got line %s", sline.c_str());
-    if (sline.substr(0, 6) == "player") {
-      auto idStr = stoi(sline.substr(10));
-      g_message("new player %d", idStr);
-      session->processNewPlayer(idStr);
-    } else if (sline.substr(0, 3) == "sdp") {
-      auto parts = sline.substr(11);
-      auto sdpStart = parts.find(",sdp:");
-      auto remoteId = stoi(parts.substr(0, sdpStart));
-      auto remoteSdp = parts.substr(sdpStart + 5);
-      session->processSdp(remoteId, remoteSdp.c_str());
-    }
-    g_message("waiting ...");
-  }
-  g_message("endthread");
-  CoUninitialize();
-  g_thread_exit(NULL);
-  return nullptr;
-}
-
 static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
   g_message(
     "CreatePlayer (%ld,0x%08lx,%p,%p)",
@@ -116,11 +61,12 @@ static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
   );
 
   if (data->dwFlags & DPLAYI_PLAYER_PLAYERLOCAL) {
+    if (data->dwFlags & DPLAYI_PLAYER_APPSERVER) {
+      return DP_OK;
+    }
     // Creating our local player, register with the signaling server.
-    auto sdata = new SessionData;
-    sdata->session = session;
-    sdata->player = data->idPlayer;
-    g_thread_new("signaling server", &signalingServerThread, sdata);
+    session->getSignalingConnection()
+      ->connect(session->getSessionGuid(), data->idPlayer);
   }
 
   return DP_OK;
@@ -182,14 +128,17 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
     data->bReturnStatus, data->dwOpenFlags, data->dwSessionFlags
   );
 
+  g_thread_new("main loop", &startThread, NULL);
+
   g_message("new session");
+  auto host = const_cast<char*>(DEFAULT_SIGNALING_HOST);
+  auto port = DEFAULT_SIGNALING_PORT;
   // TODO use the actual guid of the directplay session
   GUID sessionGuid;
   CoCreateGuid(&sessionGuid);
   // TODO store in DirectPlay SPData (the pointers got weird when I tried this)
-  session = new GameSession(sessionGuid, !!data->bCreate);
-
-  g_thread_new("main loop", &startThread, NULL);
+  auto connection = new SignalingConnection(host, port);
+  session = new GameSession(connection, sessionGuid, !!data->bCreate);
 
   return DP_OK;
 }
@@ -282,12 +231,10 @@ static void setup_callbacks (DPSP_SPCALLBACKS* callbacks) {
 static HRESULT init (SPINITDATA* spData) {
   g_message("SPInit");
 
-  auto provider = spData->lpISP;
-
-  auto guid = static_cast<wchar_t*>(calloc(51, sizeof(wchar_t)));
+  auto guid = new wchar_t[51];
   StringFromGUID2(*spData->lpGuid, guid, 50);
   g_message("Initializing library for %ls (%ls)", guid, spData->lpszName);
-  free(guid);
+  delete guid;
 
   /* We only support NICE service */
   if (!IsEqualGUID(*spData->lpGuid, DPSPGUID_NICE)) {
