@@ -1,5 +1,6 @@
 #include "GameSession.hpp"
 #include "nicesp.hpp"
+#include "../util.hpp"
 #include <gio/gnetworking.h>
 #include <string>
 
@@ -254,10 +255,7 @@ static void setup_callbacks (DPSP_SPCALLBACKS* callbacks) {
 static HRESULT init (SPINITDATA* spData) {
   g_message("SPInit");
 
-  auto guid = new wchar_t[51];
-  StringFromGUID2(*spData->lpGuid, guid, 50);
-  g_message("Initializing library for %ls (%ls)", guid, spData->lpszName);
-  delete guid;
+  g_message("Initializing library for %ls (%ls)", to_string(*spData->lpGuid).c_str(), spData->lpszName);
 
   /* We only support NICE service */
   if (!IsEqualGUID(*spData->lpGuid, DPSPGUID_NICE)) {

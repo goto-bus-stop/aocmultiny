@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "CLI.hpp"
 #include "../irc/IRC.hpp"
+#include "../../util.hpp"
 #include <dplib/DPLobby.hpp>
 #include <dplib/DPGameAoC.hpp>
 
@@ -15,19 +16,6 @@ using std::for_each;
 using dplib::DPLobby;
 using dplib::DPGameAoC;
 using aocmultiny::irc::IRC;
-
-namespace std {
-  auto to_string (GUID g) {
-    // so beautiful
-    auto wchr = static_cast<wchar_t*>(calloc(50, sizeof(wchar_t)));
-    StringFromGUID2(g, wchr, 50);
-    string str;
-    for (size_t i = 0; i < 50 && wchr[i] != '\0'; i++) {
-      str.push_back(static_cast<char>(wchr[i]));
-    }
-    return str;
-  }
-}
 
 namespace aocmultiny {
 namespace cli {

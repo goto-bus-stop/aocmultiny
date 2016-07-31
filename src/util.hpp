@@ -1,9 +1,17 @@
 #pragma once
+#include <objbase.h>
 #include <string>
 #include <vector>
 #include <functional>
 
 using namespace std;
+
+namespace std {
+
+wstring to_wstring (GUID guid);
+string to_string (GUID guid);
+
+}
 
 namespace aocmultiny {
 

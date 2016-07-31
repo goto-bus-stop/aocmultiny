@@ -1,22 +1,13 @@
 #include "SignalingConnection.hpp"
+#include "../util.hpp"
 #include <glib.h>
 #include <glib-object.h>
 #include <gio/gio.h>
 
 using std::string;
+using std::to_string;
 
 namespace nicesp {
-
-static char* gtc (GUID guid) {
-  auto str = new wchar_t[51];
-  StringFromGUID2(guid, str, 50);
-  auto result = new char[wcslen(str)];
-  for (uint32_t i = 0; i < 38; i++) {
-    result[i] = static_cast<char>(str[i]);
-  }
-  result[38] = '\0';
-  return result;
-}
 
 static void* signalThread (void* data) {
   auto connection = reinterpret_cast<SignalingConnection*>(data);
@@ -101,7 +92,11 @@ void SignalingConnection::receive (string message) {
 }
 
 void SignalingConnection::connect (GUID sessionGuid, DPID playerId) {
-  auto authString = g_strdup_printf("create session:%s,id:%d", gtc(sessionGuid), static_cast<int>(playerId));
+  auto authString = g_strdup_printf(
+    "create session:%s,id:%d",
+    to_string(sessionGuid).c_str(),
+    static_cast<int>(playerId)
+  );
   this->send(authString);
   g_free(authString);
 }

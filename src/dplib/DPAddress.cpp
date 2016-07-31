@@ -1,17 +1,14 @@
 #include "DPAddress.hpp"
+#include "../util.hpp"
 #include <dplobby.h>
 #include <string>
 #include <iostream>
 
+using std::to_wstring;
+
 namespace dplib {
 
 const GUID DPSPGUID_NICE = { 0xe2dd8ebe, 0x1f03, 0x43b7, { 0x8d, 0x92, 0x9c, 0x6c, 0x2f, 0x5c, 0x44, 0x26 } };
-
-std::wstring gts (GUID guid) {
-  wchar_t* str = new wchar_t[51];
-  StringFromGUID2(guid, str, 50);
-  return str;
-}
 
 DPAddress::DPAddress (LPDIRECTPLAYLOBBY3A lobby, std::string ip)
     :
@@ -39,7 +36,7 @@ void DPAddress::alloc () {
   addressElements[1].dwDataSize = this->ip.length() + 1;
   elements++;
 
-  std::wcout << "[DPAddress::alloc] SPID: " << gts(DPSPGUID_NICE) << std::endl;
+  std::wcout << "[DPAddress::alloc] SPID: " << to_wstring(DPSPGUID_NICE) << std::endl;
 
   auto hr = this->lobby->CreateCompoundAddress(addressElements, 2, NULL, &addressSize);
   if (hr == DPERR_BUFFERTOOSMALL) {

@@ -33,7 +33,7 @@ CLIENT_LDFLAGS = -static $(LD_DPLIB) -lole32 -loleaut32 -lws2_32 $(shell $(WXC) 
 NICESP_TARGET = nicesp.dll
 NICESP_SRC = src/nicesp
 NICESP_FILES = $(shell find $(NICESP_SRC) -name "*.cpp")
-NICESP_OBJECTS = $(NICESP_FILES:.cpp=.o)
+NICESP_OBJECTS = $(NICESP_FILES:.cpp=.o) $(UTIL_OBJECTS)
 NICESP_CFLAGS = $(shell $(PKGCONFIG) --cflags gio-2.0 nice)
 NICESP_LDFLAGS = -shared -lole32 -ldxguid $(shell $(PKGCONFIG) --libs gio-2.0 nice)
 

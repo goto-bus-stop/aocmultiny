@@ -1,16 +1,11 @@
 #include <stdlib.h>
 #include <iostream>
 #include "DPSessionDesc.hpp"
+#include "../util.hpp"
 
 using namespace std;
 
 namespace dplib {
-
-wstring GUIDToString (GUID guid) {
-  wchar_t* str = static_cast<wchar_t*>(malloc(51 * sizeof(wchar_t)));
-  StringFromGUID2(guid, str, 50);
-  return str;
-}
 
 DPSessionDesc::DPSessionDesc (GUID guidApplication, GUID guidInstance, string sessionName, string sessionPass, bool host)
     :
@@ -30,7 +25,7 @@ void DPSessionDesc::alloc () {
   auto sessionDesc = new DPSESSIONDESC2;
   sessionDesc->dwSize = sizeof(DPSESSIONDESC2);
   sessionDesc->dwFlags = 0;
-  wcout << "[DPSessionDesc::alloc] guidInstance: " << GUIDToString(guidInstance) << endl;
+  wcout << "[DPSessionDesc::alloc] guidInstance: " << to_wstring(guidInstance) << endl;
   sessionDesc->guidInstance = guidInstance;
   sessionDesc->guidApplication = guidApplication;
   sessionDesc->dwMaxPlayers = 8;
