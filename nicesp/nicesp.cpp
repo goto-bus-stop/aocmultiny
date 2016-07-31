@@ -11,7 +11,17 @@ const gchar* DEFAULT_SIGNALING_HOST = "localhost";
 const guint DEFAULT_SIGNALING_PORT = 7788;
 
 GMainLoop* gloop;
-GameSession* session;
+GameSession* _session;
+
+static GameSession* getGameSession (IDirectPlaySP* provider) {
+  return _session;
+#if 0
+  void* session;
+  DWORD size = sizeof(session);
+  provider->GetSPData(&session, &size, DPGET_LOCAL);
+  return static_cast<GameSession*>(session);
+#endif
+}
 
 static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
   g_message(
@@ -40,6 +50,8 @@ static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
     data->bSystemMessage, data->lpISP
   );
 
+  auto session = getGameSession(data->lpISP);
+
   auto player = session->getPlayerById(data->idPlayerTo);
   auto stream = player->agent->getStream(1);
 
@@ -55,10 +67,9 @@ static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
     data->lpSPMessageHeader, data->lpISP
   );
 
-  if (data->dwFlags & DPLAYI_PLAYER_PLAYERLOCAL) {
-    if (data->dwFlags & DPLAYI_PLAYER_APPSERVER) {
-      return DP_OK;
-    }
+  auto session = getGameSession(data->lpISP);
+
+  if (data->dwFlags & (DPLAYI_PLAYER_PLAYERLOCAL | DPLAYI_PLAYER_NAMESRVR)) {
     // Creating our local player, register with the signaling server.
     session->getSignalingConnection()
       ->connect(session->getSessionGuid(), data->idPlayer);
@@ -72,6 +83,8 @@ static HRESULT WINAPI DPNice_DeletePlayer (DPSP_DELETEPLAYERDATA* data) {
     "DeletePlayer (%ld,0x%08lx,%p)",
     data->idPlayer, data->dwFlags, data->lpISP
   );
+
+  auto session = getGameSession(data->lpISP);
 
   session->deletePlayer(data->idPlayer);
 
@@ -136,15 +149,27 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   CoCreateGuid(&sessionGuid);
   // TODO store in DirectPlay SPData (the pointers got weird when I tried this)
   auto connection = new SignalingConnection(host, port);
-  session = new GameSession(connection, sessionGuid, !!data->bCreate);
+  auto session = new GameSession(connection, sessionGuid, !!data->bCreate);
+
+  auto sessionRef = &session;
+  auto provider = data->lpISP;
+  provider->SetSPData(&sessionRef, sizeof(sessionRef), DPSET_LOCAL);
+
+  // FIXME Hack. Used to work around about SPData stuff^
+  _session = session;
 
   return DP_OK;
 }
 
 static HRESULT WINAPI DPNice_CloseEx (DPSP_CLOSEDATA* data) {
   g_message("CloseEx (%p) stub", data->lpISP);
+
+  auto session = getGameSession(data->lpISP);
+
   g_main_loop_quit(gloop);
-  return DPERR_UNSUPPORTED;
+  delete session;
+
+  return DP_OK;
 }
 
 static HRESULT WINAPI DPNice_ShutdownEx (DPSP_SHUTDOWNDATA* data) {
