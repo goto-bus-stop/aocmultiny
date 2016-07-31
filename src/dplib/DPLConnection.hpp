@@ -4,7 +4,6 @@
 #include "DPName.hpp"
 #include "DPSessionDesc.hpp"
 
-namespace aocmultiny {
 namespace dplib {
 
 class DPLConnection {
@@ -23,5 +22,4 @@ public:
 
 };
 
-}
 }

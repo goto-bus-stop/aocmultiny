@@ -2,9 +2,8 @@
 #include "cli/CLI.hpp"
 #include "irc/IRC.hpp"
 #include "gui/App.hpp"
-#include "dplib/DPLobby.hpp"
-#include "dplib/DPGameAoC.hpp"
-#include "dplib/DPGameChatConnect.hpp"
+#include <dplib/DPLobby.hpp>
+#include <dplib/DPGameAoC.hpp>
 #include <string>
 #include <iostream>
 #include <vector>

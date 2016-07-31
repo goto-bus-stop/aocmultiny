@@ -4,16 +4,16 @@
 #include <algorithm>
 #include "CLI.hpp"
 #include "../irc/IRC.hpp"
-#include "../dplib/DPLobby.hpp"
-#include "../dplib/DPGameAoC.hpp"
+#include <dplib/DPLobby.hpp>
+#include <dplib/DPGameAoC.hpp>
 
 using std::to_string;
 using std::string;
 using std::wstring;
 using std::stringstream;
 using std::for_each;
-using aocmultiny::dplib::DPLobby;
-using aocmultiny::dplib::DPGameAoC;
+using dplib::DPLobby;
+using dplib::DPGameAoC;
 using aocmultiny::irc::IRC;
 
 namespace std {

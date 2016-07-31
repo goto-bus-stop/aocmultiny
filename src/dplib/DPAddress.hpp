@@ -2,7 +2,6 @@
 #include <string>
 #include <dplobby.h>
 
-namespace aocmultiny {
 namespace dplib {
 
 class DPAddress {
@@ -21,5 +20,4 @@ public:
 
 };
 
-}
 }

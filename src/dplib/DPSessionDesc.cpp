@@ -4,7 +4,6 @@
 
 using namespace std;
 
-namespace aocmultiny {
 namespace dplib {
 
 wstring GUIDToString (GUID guid) {
@@ -61,5 +60,4 @@ DPSessionDesc::~DPSessionDesc () {
   delete this->dpSessionDesc;
 }
 
-}
 }

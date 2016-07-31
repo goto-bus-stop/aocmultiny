@@ -3,7 +3,6 @@
 #include <string>
 #include <iostream>
 
-namespace aocmultiny {
 namespace dplib {
 
 const GUID DPSPGUID_NICE = { 0xe2dd8ebe, 0x1f03, 0x43b7, { 0x8d, 0x92, 0x9c, 0x6c, 0x2f, 0x5c, 0x44, 0x26 } };
@@ -60,5 +59,4 @@ void* DPAddress::unwrap () {
   return this->address;
 }
 
-}
 }

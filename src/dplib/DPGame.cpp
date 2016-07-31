@@ -4,7 +4,6 @@
 
 using namespace std;
 
-namespace aocmultiny {
 namespace dplib {
 
 DPGame::DPGame (GUID guid)
@@ -63,5 +62,4 @@ void DPGame::receiveMessage (DPLobbyMessage* message) {
   }
 }
 
-}
 }

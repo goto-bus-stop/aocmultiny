@@ -9,7 +9,6 @@
 
 using aocmultiny::EventListeners;
 
-namespace aocmultiny {
 namespace dplib {
 
 class DPGame;
@@ -66,5 +65,4 @@ public:
   EventListeners<> onAppTerminated;
 };
 
-}
 }

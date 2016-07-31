@@ -5,7 +5,6 @@
 
 using namespace std;
 
-namespace aocmultiny {
 namespace dplib {
 
 DPLobbyMessage::DPLobbyMessage (DPLobby* lobby, int appId, int flags, void* data, int size)
@@ -154,5 +153,4 @@ void DPLobby::launch () {
   delete sessionDesc;
 }
 
-}
 }

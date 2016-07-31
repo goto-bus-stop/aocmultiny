@@ -9,7 +9,6 @@
     void receiveMessage (aocmultiny::dplib::DPLobbyMessage* message); \
   }
 
-namespace aocmultiny {
 namespace dplib {
 
 class DPLobbyMessage;
@@ -24,5 +23,4 @@ public:
   virtual void receiveMessage (DPLobbyMessage* message);
 };
 
-}
 }

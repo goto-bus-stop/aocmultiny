@@ -5,7 +5,6 @@
 
 using namespace std;
 
-namespace aocmultiny {
 namespace dplib {
 
 DPGameAoC::DPGameAoC ()
@@ -87,5 +86,4 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
   }
 }
 
-}
 }

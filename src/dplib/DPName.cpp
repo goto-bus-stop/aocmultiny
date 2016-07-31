@@ -3,7 +3,6 @@
 #include <dplobby.h>
 #include "DPName.hpp"
 
-namespace aocmultiny {
 namespace dplib {
 
 DPName::DPName (std::string name)
@@ -34,5 +33,4 @@ DPName::~DPName () {
   delete this->dpName;
 }
 
-}
 }
