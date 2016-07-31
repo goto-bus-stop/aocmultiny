@@ -48,11 +48,6 @@ static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
   return DP_OK;
 }
 
-struct SessionData {
-  GameSession* session;
-  DPID player;
-};
-
 static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
   g_message(
     "CreatePlayer (%ld,0x%08lx,%p,%p)",
