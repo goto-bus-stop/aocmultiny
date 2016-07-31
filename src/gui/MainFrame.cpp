@@ -1,4 +1,5 @@
 #include "MainFrame.hpp"
+#include "RoomFrame.hpp"
 
 using std::string;
 using std::to_string;
@@ -55,7 +56,9 @@ void MainFrame::setRooms (vector<Channel*> rooms) {
 void MainFrame::onJoinRoom (wxCommandEvent& event) {
   auto roomName = event.GetString().ToStdString();
   std::wcout << "[MainFrame::onJoinRoom] " << roomName << std::endl;
-  this->irc->join(roomName);
+
+  auto room = new RoomFrame(NULL, this->irc, roomName);
+  room->Show(true);
 }
 
 void MainFrame::onAbout (wxCommandEvent& event) {
