@@ -7,7 +7,10 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <utility>
 
+using std::map;
+using std::pair;
 using std::string;
 using std::vector;
 
@@ -20,6 +23,7 @@ class Message;
 class MessagePrefix;
 
 typedef std::function<void(IRC*, Message*)> Handler;
+typedef vector<pair<int, Handler>> HandlerList;
 typedef vector<Channel*> ChannelList;
 
 class MessagePrefix {
@@ -48,8 +52,9 @@ private:
   string host;
   int port;
   int thread;
-  std::map<string, vector<Handler>> handlers;
-  vector<Channel*> next_channels;
+  map<string, HandlerList> handlers;
+  int handlerIdx;
+  ChannelList next_channels;
 
   void attachDefaultHandlers ();
   void initWinSock ();
@@ -72,7 +77,7 @@ public:
   void user (string username, string realname);
   void user (string username);
 
-  vector<Channel*> channels;
+  ChannelList channels;
   Channel* channel (string name);
   void list ();
   void join (string channel);
@@ -84,8 +89,9 @@ public:
   void ctcp (string target, string message);
   bool is_ctcp (string message);
 
-  void on (string command, Handler handler);
-  void on (std::map<string, Handler> handlers);
+  int on (string command, Handler handler);
+  void off (int listener);
+  void off (string command, int listener);
   void onJoinedChannel (string channel);
 
   EventListeners<ChannelList> onChannelList;

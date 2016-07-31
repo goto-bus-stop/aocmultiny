@@ -54,6 +54,7 @@ IRC::IRC (string host, int port)
     host(host),
     port(port),
     thread(0),
+    handlerIdx(0),
     running(false),
     channels(vector<Channel*> ()) {
   this->attachDefaultHandlers();
@@ -240,7 +241,8 @@ void IRC::execute (Message* message) {
     const auto& handlers = this->handlers.at(message->command);
     cout << "[IRC::execute] Handlers for " << message->command << endl;
     for (auto handler : handlers) {
-      handler(this, message);
+      auto fn = handler.second;
+      fn(this, message);
     }
   } catch (std::out_of_range) {
     cout << "[IRC::execute] Unrecognized command: " << message->command << endl;
@@ -305,17 +307,29 @@ void IRC::action (string target, string message) {
   this->ctcp(target, "ACTION " + message);
 }
 
-void IRC::on (string command, Handler handler) {
+int IRC::on (string command, Handler handler) {
+  this->handlerIdx++;
   try {
-    this->handlers[command].push_back(handler);
+    this->handlers[command].push_back({ this->handlerIdx, handler });
   } catch (std::out_of_range) {
-    this->handlers[command] = { handler };
+    this->handlers[command] = { { this->handlerIdx, handler } };
+  }
+  return this->handlerIdx;
+}
+
+void IRC::off (int listener) {
+  for (auto entry : this->handlers) {
+    this->off(entry.first, listener);
   }
 }
 
-void IRC::on (map<string, Handler> events) {
-  for (auto entry : events) {
-    this->on(entry.first, entry.second);
+void IRC::off (string command, int listener) {
+  auto listeners = this->handlers[command];
+  for (int i = 0, l = listeners.size(); i < l; i++) {
+    if (listeners[i].first == listener) {
+      listeners.erase(listeners.begin() + i);
+      break;
+    }
   }
 }
 
