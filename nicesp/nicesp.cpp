@@ -5,10 +5,10 @@
 
 using namespace std;
 
-#define DEFAULT_SIGNALING_HOST "localhost"
-#define DEFAULT_SIGNALING_PORT 7788
-
 namespace nicesp {
+
+const gchar* DEFAULT_SIGNALING_HOST = "localhost";
+const guint DEFAULT_SIGNALING_PORT = 7788;
 
 GMainLoop* gloop;
 GameSession* session;
@@ -129,7 +129,7 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   g_thread_new("main loop", &startThread, NULL);
 
   g_message("new session");
-  auto host = const_cast<char*>(DEFAULT_SIGNALING_HOST);
+  auto host = DEFAULT_SIGNALING_HOST;
   auto port = DEFAULT_SIGNALING_PORT;
   // TODO use the actual guid of the directplay session
   GUID sessionGuid;

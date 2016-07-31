@@ -38,7 +38,7 @@ static void* signalThread (void* data) {
 static auto defaultOnNewPlayer = [] (DPID id) {};
 static auto defaultOnSdp = [] (DPID id, const gchar* sdp) {};
 
-SignalingConnection::SignalingConnection (gchar* host, guint port)
+SignalingConnection::SignalingConnection (const gchar* host, const guint port)
     :
     host(host),
     port(port),

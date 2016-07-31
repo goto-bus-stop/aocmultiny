@@ -13,8 +13,8 @@ namespace nicesp {
 
 class SignalingConnection {
 private:
-  gchar* host;
-  guint port;
+  const gchar* host;
+  const guint port;
 
   GCancellable* readCancellable;
   GSocketClient* client;
@@ -24,7 +24,7 @@ private:
   GOutputStream* sendStream;
   GThread* thread;
 public:
-  SignalingConnection (gchar* host, guint port);
+  SignalingConnection (const gchar* host, const guint port);
   ~SignalingConnection ();
 
   void send (gchar* message);

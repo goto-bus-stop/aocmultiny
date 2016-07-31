@@ -31,7 +31,7 @@ static void onNiceStateChange (
 }
 
 static void onReceiveNicePacket (
-  InternalAgent agent,
+  InternalAgent,
   guint streamId, guint componentId,
   guint len, gchar* buf,
   gpointer data
