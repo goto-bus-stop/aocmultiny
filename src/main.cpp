@@ -1,15 +1,15 @@
-#include "common.hpp"
+#include "main.hpp"
+#include "cli/CLI.hpp"
+#include "irc/IRC.hpp"
+#include "gui/App.hpp"
+#include "dplib/DPLobby.hpp"
+#include "dplib/DPGameAoC.hpp"
+#include "dplib/DPGameChatConnect.hpp"
 #include <string>
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <wx/app.h>
-#include "main.hpp"
-#include "dplib/DPLobby.hpp"
-#include "dplib/DPGameAoC.hpp"
-#include "cli/CLI.hpp"
-#include "irc/IRC.hpp"
-#include "gui/App.hpp"
 
 using namespace std;
 

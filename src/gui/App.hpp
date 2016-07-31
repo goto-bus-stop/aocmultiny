@@ -1,6 +1,6 @@
 #pragma once
-#include <wx/wx.h>
 #include "../irc/IRC.hpp"
+#include <wx/wx.h>
 
 using aocmultiny::irc::IRC;
 

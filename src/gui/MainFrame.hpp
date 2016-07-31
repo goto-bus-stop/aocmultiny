@@ -1,10 +1,10 @@
 #pragma once
-#include <vector>
-#include <wx/wx.h>
-#include <wx/listctrl.h>
 #include "../irc/IRC.hpp"
 #include "../irc/Channel.hpp"
 #include "RoomList.hpp"
+#include <vector>
+#include <wx/wx.h>
+#include <wx/listctrl.h>
 
 using aocmultiny::irc::IRC;
 using aocmultiny::irc::Channel;

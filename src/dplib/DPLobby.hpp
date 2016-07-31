@@ -1,11 +1,11 @@
-#include "../common.hpp"
-#include <dplay.h>
-#include <dplobby.h>
 #include "DPAddress.hpp"
 #include "DPLConnection.hpp"
 #include "DPName.hpp"
 #include "DPSessionDesc.hpp"
 #include "util.hpp"
+#include "../util.hpp"
+#include <dplay.h>
+#include <dplobby.h>
 
 using aocmultiny::EventListeners;
 

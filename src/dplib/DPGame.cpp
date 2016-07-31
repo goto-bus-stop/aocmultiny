@@ -1,5 +1,5 @@
-#include "DPGame.hpp"
 #include "DPLobby.hpp"
+#include "DPGame.hpp"
 #include <iostream>
 
 using namespace std;

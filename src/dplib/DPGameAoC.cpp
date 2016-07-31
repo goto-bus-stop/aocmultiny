@@ -1,7 +1,7 @@
-#include <iostream>
-#include <dplobby.h>
 #include "DPLobby.hpp"
 #include "DPGameAoC.hpp"
+#include <iostream>
+#include <dplobby.h>
 
 using namespace std;
 
