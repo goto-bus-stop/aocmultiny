@@ -28,7 +28,14 @@ MainFrame::MainFrame (const wxString& title, IRC* irc)
   menuBar->Append(menuHelp, wxT("&Help"));
 
   this->irc = irc;
-  this->roomList = new RoomList(this);
+  auto panel = new wxPanel(this);
+  auto vbox = new wxBoxSizer(wxVERTICAL);
+  panel->SetSizer(vbox);
+
+  this->roomList = new RoomList(panel);
+  this->chat = new Chat(panel, this->irc, "#lobby");
+  vbox->Add(this->roomList, 0, wxEXPAND, 0);
+  vbox->Add(this->chat, 0, wxEXPAND, 0);
 
   this->SetMenuBar(menuBar);
   this->CreateStatusBar();

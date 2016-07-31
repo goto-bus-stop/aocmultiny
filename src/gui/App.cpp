@@ -30,6 +30,7 @@ bool App::OnInit () {
     frame->setRooms(channels);
   };
 
+  this->irc->join("#lobby");
   this->irc->list();
 
   return true;

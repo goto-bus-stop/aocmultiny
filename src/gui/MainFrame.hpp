@@ -1,6 +1,7 @@
 #pragma once
 #include "../irc/IRC.hpp"
 #include "../irc/Channel.hpp"
+#include "Chat.hpp"
 #include "RoomList.hpp"
 #include <vector>
 #include <wx/wx.h>
@@ -21,6 +22,7 @@ protected:
 private:
   IRC* irc;
   RoomList* roomList;
+  Chat* chat;
 
   void onHello (wxCommandEvent& event);
   void onExit (wxCommandEvent& event);
