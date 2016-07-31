@@ -62,7 +62,7 @@ void CLI::start () {
   });
 
   this->irc->on("JOIN", [this] (auto irc, auto message) {
-    auto params = message.params;
+    auto params = message->params;
     if (params.size() == 1 || params[1] == "") {
       auto room_name = params[0].substr(1);
       this->current_room = room_name;
@@ -72,7 +72,7 @@ void CLI::start () {
     }
   });
   this->irc->on("PART", [this] (auto irc, auto message) {
-    auto params = message.params;
+    auto params = message->params;
     if (params.size() == 1 || params[1] == "") {
       this->println("Left room \"" + params[0].substr(1) + "\"");
     } else {
@@ -81,7 +81,7 @@ void CLI::start () {
   });
 
   this->irc->on("PRIVMSG", [this, lobby] (auto irc, auto message) {
-    auto action = message.params.back();
+    auto action = message->params.back();
     if (this->irc->is_ctcp(action)) {
       auto ctcp = split(action.substr(1, -1), ' ');
       if (ctcp[0] == "AOC_START" && ctcp.size() >= 3) {

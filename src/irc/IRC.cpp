@@ -69,16 +69,16 @@ IRC::~IRC () {
 
 void IRC::attachDefaultHandlers () {
   this->on("JOIN", [this] (auto, auto message) {
-    this->onJoinedChannel(message.params[0]);
+    this->onJoinedChannel(message->params[0]);
   });
   this->on(RPL_LISTSTART, [this] (auto, auto) {
     this->next_channels.clear();
   });
   this->on(RPL_LIST, [this] (auto, auto message) {
-    auto members_count = message.params.size() > 2 ? stoi(message.params[2]) : 0;
-    auto topic = message.params.size() > 3 ? message.params[3] : "";
+    auto members_count = message->params.size() > 2 ? stoi(message->params[2]) : 0;
+    auto topic = message->params.size() > 3 ? message->params[3] : "";
     this->next_channels.push_back(
-      new Channel(this, message.params[1], members_count, topic)
+      new Channel(this, message->params[1], members_count, topic)
     );
   });
   this->on(RPL_LISTEND, [this] (auto, auto) {
@@ -174,7 +174,7 @@ void IRC::receive () {
       line = line.substr(0, line.size() - 1);
     }
     auto message = this->parse(line);
-    this->execute(*message);
+    this->execute(message);
   }
 }
 
@@ -235,15 +235,15 @@ Message* IRC::parse (string raw) {
   return new Message(command, parsePrefix(prefix), parameters);
 }
 
-void IRC::execute (Message message) {
+void IRC::execute (Message* message) {
   try {
-    const auto& handlers = this->handlers.at(message.command);
-    cout << "[IRC::execute] Handlers for " << message.command << endl;
+    const auto& handlers = this->handlers.at(message->command);
+    cout << "[IRC::execute] Handlers for " << message->command << endl;
     for (auto handler : handlers) {
       handler(this, message);
     }
   } catch (std::out_of_range) {
-    cout << "[IRC::execute] Unrecognized command: " << message.command << endl;
+    cout << "[IRC::execute] Unrecognized command: " << message->command << endl;
   }
 }
 

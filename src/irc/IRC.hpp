@@ -19,7 +19,7 @@ class Channel;
 class Message;
 class MessagePrefix;
 
-typedef std::function<void(IRC*, Message)> Handler;
+typedef std::function<void(IRC*, Message*)> Handler;
 typedef vector<Channel*> ChannelList;
 
 class MessagePrefix {
@@ -63,7 +63,7 @@ public:
   void receive ();
   bool running;
 
-  void execute (Message message);
+  void execute (Message* message);
 
   void connect ();
   void disconnect ();
