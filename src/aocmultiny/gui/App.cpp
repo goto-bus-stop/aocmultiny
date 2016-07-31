@@ -11,15 +11,16 @@ bool App::OnInit () {
     return false;
   }
 
+  wxTextEntryDialog dialog (NULL, wxT("Username"));
+  if (dialog.ShowModal() == wxID_CANCEL) {
+    return false;
+  }
+
+  auto username = dialog.GetValue().ToStdString();
+
   this->irc = new irc::IRC("localhost");
 
   auto frame = new MainFrame("AoCMulTiny", this->irc);
-
-  wxTextEntryDialog dialog (frame, wxT("Username"));
-
-  dialog.ShowModal();
-  auto username = dialog.GetValue().ToStdString();
-  std::cout << "Username: " << username << std::endl;
 
   this->irc->nick(username);
   this->irc->user(username);
