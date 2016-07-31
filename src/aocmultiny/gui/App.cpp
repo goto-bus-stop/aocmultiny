@@ -27,12 +27,7 @@ bool App::OnInit () {
 
   frame->Show(true);
 
-  this->irc->onChannelList += [frame] (auto channels) {
-    frame->setRooms(channels);
-  };
-
   this->irc->join("#lobby");
-  this->irc->list();
 
   return true;
 }
