@@ -11,9 +11,8 @@ namespace dplib {
 DPGameAoC::DPGameAoC ()
     :
     DPGame(GUID_AoC) {
-  this->preset = static_cast<DPGameAoCPresetData*>(
-    calloc(1, sizeof(DPGameAoCPresetData))
-  );
+  this->preset = new DPGameAoCPresetData;
+  ZeroMemory(this->preset, sizeof(DPGameAoCPresetData));
   this->preset->u2[0] = 13;
   this->preset->u2[2] = 1;
   this->preset->u2[4] = 1;
@@ -23,7 +22,7 @@ DPGameAoC::DPGameAoC ()
 }
 
 DPGameAoC::~DPGameAoC () {
-  free(this->preset);
+  delete this->preset;
 }
 
 void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
@@ -56,8 +55,7 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
       wcout << "[DPGameAoC::receiveMessage] responding to Preset Data GETPROPERTY message " << endl;
       message->reply(getPropRes, responseSize);
     } else {
-      auto responseSize = sizeof(DPLMSG_GETPROPERTYRESPONSE);
-      auto getPropRes = static_cast<DPLMSG_GETPROPERTYRESPONSE*>(malloc(responseSize));
+      auto getPropRes = new DPLMSG_GETPROPERTYRESPONSE;
       getPropRes->dwType = DPLSYS_GETPROPERTYRESPONSE;
       getPropRes->dwRequestID = getPropMsg->dwRequestID;
       getPropRes->guidPlayer = getPropMsg->guidPlayer;
@@ -66,7 +64,7 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
       getPropRes->dwDataSize = 0;
       getPropRes->dwPropertyData[0] = 0;
       wcout << "[DPGameAoC::receiveMessage] responding to unknown GETPROPERTY message" << endl;
-      message->reply(getPropRes, responseSize);
+      message->reply(getPropRes, sizeof(getPropRes));
     }
     break;
   }
