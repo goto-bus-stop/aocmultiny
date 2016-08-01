@@ -62,9 +62,8 @@ GameSession* Player::getSession () {
   return this->session;
 }
 
-GameSession::GameSession (SignalingConnection* signaling, GUID sessionGuid, bool isHost)
+GameSession::GameSession (SignalingConnection* signaling, bool isHost)
     :
-    sessionGuid(sessionGuid),
     players(vector<Player*>()),
     isHost(isHost),
     signaling(signaling) {
@@ -86,10 +85,6 @@ NiceAgent* GameSession::getPlayerAgent (DPID id) {
 
 SignalingConnection* GameSession::getSignalingConnection () {
   return this->signaling;
-}
-
-GUID GameSession::getSessionGuid () {
-  return this->sessionGuid;
 }
 
 void GameSession::processNewPlayer (DPID id) {

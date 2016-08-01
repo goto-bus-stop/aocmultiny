@@ -26,18 +26,16 @@ public:
 
 class GameSession {
 private:
-  GUID sessionGuid;
   vector<Player*> players;
   bool isHost;
   SignalingConnection* signaling;
 public:
 
-  GameSession (SignalingConnection* signaling, GUID sessionGuid, bool isHost);
+  GameSession (SignalingConnection* signaling, bool isHost);
   ~GameSession ();
 
   NiceAgent* getPlayerAgent (DPID id);
   SignalingConnection* getSignalingConnection ();
-  GUID getSessionGuid ();
 
   void processNewPlayer (DPID id);
   void deletePlayer (DPID id);

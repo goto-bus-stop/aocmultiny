@@ -13,6 +13,7 @@ const guint DEFAULT_SIGNALING_PORT = 7788;
 
 GMainLoop* gloop;
 GameSession* _session;
+IDirectPlayLobby3A* _lobby;
 
 static GameSession* getGameSession (IDirectPlaySP* provider) {
   return _session;
@@ -22,6 +23,28 @@ static GameSession* getGameSession (IDirectPlaySP* provider) {
   provider->GetSPData(&session, &size, DPGET_LOCAL);
   return static_cast<GameSession*>(session);
 #endif
+}
+
+/**
+ * Get the Lobby connection settings for this session.
+ * (Are Service Providers suppposed to access this? Well, it works, so…)
+ */
+DPLCONNECTION* getDPLConnection () {
+  DWORD size;
+  _lobby->GetConnectionSettings(0, NULL, &size);
+  auto conndata = malloc(size);
+  auto hr = _lobby->GetConnectionSettings(0, conndata, &size);
+  if (FAILED(hr)) {
+    return NULL;
+  }
+  return static_cast<DPLCONNECTION*>(conndata);
+}
+
+GUID getSessionGuid () {
+  auto connection = getDPLConnection();
+  auto guid = connection->lpSessionDesc->guidInstance;
+  free(connection);
+  return guid;
 }
 
 static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
@@ -73,7 +96,7 @@ static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
   if (data->dwFlags & (DPLAYI_PLAYER_PLAYERLOCAL | DPLAYI_PLAYER_NAMESRVR)) {
     // Creating our local player, register with the signaling server.
     session->getSignalingConnection()
-      ->connect(session->getSessionGuid(), data->idPlayer);
+      ->connect(getSessionGuid(), data->idPlayer);
   }
 
   return DP_OK;
@@ -145,12 +168,9 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   g_message("new session");
   auto host = DEFAULT_SIGNALING_HOST;
   auto port = DEFAULT_SIGNALING_PORT;
-  // TODO use the actual guid of the directplay session
-  GUID sessionGuid;
-  CoCreateGuid(&sessionGuid);
   // TODO store in DirectPlay SPData (the pointers got weird when I tried this)
   auto connection = new SignalingConnection(host, port);
-  auto session = new GameSession(connection, sessionGuid, !!data->bCreate);
+  auto session = new GameSession(connection, !!data->bCreate);
 
   auto sessionRef = &session;
   auto provider = data->lpISP;
@@ -287,10 +307,18 @@ BOOL WINAPI DllMain (HINSTANCE instance, DWORD reason, void* reserved) {
 
   switch (reason) {
   case DLL_PROCESS_ATTACH:
-    /* TODO: Initialization */
+    CoCreateInstance(
+      CLSID_DirectPlayLobby,
+      NULL,
+      CLSCTX_ALL,
+      IID_IDirectPlayLobby3A,
+      reinterpret_cast<void**>(&nicesp::_lobby)
+    );
+
     DisableThreadLibraryCalls(instance);
     break;
   case DLL_PROCESS_DETACH:
+    nicesp::_lobby->Release();
     break;
   default:
     break;
