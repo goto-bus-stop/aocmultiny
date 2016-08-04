@@ -49,12 +49,13 @@ On Windowses with Visual Studio:
     - `AOCMULTINY_DPLAY_SDK=` path to where you installed the DirectX SDK.
  4. Import the AoCMultiny.vcxproj project file.
 
-## Credits
+## Credits/References
 
  - IRC: Took clues (and an IRC message parser) from [Fredi/IRCClient]
  - DirectPlay: I used [@biegleux]'s Delphi [DPLobbySystem] as a reference for
    most of the DirectPlay lobby/game setup. I'm not sure if the sources are
    still online, but I'll link them here if I can find them.
+ - DirectPlay: The DirectPlay sections in the [DirectX 7 SDK documentation].
 
 [Fredi/IRCClient]: https://github.com/Fredi/IRCClient
 [@biegleux]: https://github.com/biegleux
@@ -63,3 +64,4 @@ On Windowses with Visual Studio:
 [DirectX SDK with DirectPlay (August 2007)]: https://www.microsoft.com/en-us/download/details.aspx?id=13287
 [mingwbuild]: https://wiki.wxwidgets.org/Cross-Compiling_Under_Linux#Cross-compiling_under_Linux_for_MS_Windows
 [vsbuild]: https://wiki.wxwidgets.org/Microsoft_Visual_C%2B%2B_Guide
+[DirectX 7 SDK documentation]: http://idlebeaver.ninja/dx7/
