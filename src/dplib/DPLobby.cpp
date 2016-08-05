@@ -37,17 +37,19 @@ DPLobbyMessage::~DPLobbyMessage () {
   free(this->data);
 }
 
-DPLobby::DPLobby (DPGame* game)
-    :
-    DPLobby(game, "Player") {
+DPLobby* DPLobby::get () {
+  static DPLobby* instance;
+  if (!instance) {
+    instance = new DPLobby();
+  }
+  return instance;
 }
 
-DPLobby::DPLobby (DPGame* game, string playerName)
+DPLobby::DPLobby ()
     :
-    game(game),
     guid({ 0 }),
     isHosting(false),
-    playerName(playerName) {
+    playerName("Player") {
   CoCreateInstance(
     CLSID_DirectPlay,
     NULL,
@@ -68,6 +70,20 @@ HRESULT DPLobby::create () {
     reinterpret_cast<void**>(&this->dpLobby)
   );
   return hr;
+}
+
+IDirectPlayLobby3A* DPLobby::getInternalLobby () {
+  return this->dpLobby;
+}
+
+DPLobby* DPLobby::setGame (DPGame* game) {
+  this->game = game;
+  return this;
+}
+
+DPLobby* DPLobby::setPlayerName (string playerName) {
+  this->playerName = playerName;
+  return this;
 }
 
 /**
@@ -133,8 +149,6 @@ void DPLobby::launch () {
   DWORD appId = 0;
 
   wcout << "[DPLobby::launch] Launching app" << endl;
-
-  connection->alloc(this->dpLobby);
 
   auto hr = this->dpLobby->RunApplication(0, &appId, connection->unwrap(), receiveEvent);
   if (FAILED(hr)) {

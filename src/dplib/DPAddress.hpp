@@ -1,8 +1,10 @@
 #pragma once
+#include <dplobby.h>
 #include <string>
 #include <vector>
-#include <dplobby.h>
+#include <tuple>
 
+using std::pair;
 using std::string;
 using std::vector;
 
@@ -11,16 +13,20 @@ namespace dplib {
 class DPAddress {
 private:
   vector<DPCOMPOUNDADDRESSELEMENT*> elements;
+  void* address;
+  DWORD addressSize = 0;
 
 public:
   DPAddress ();
   DPAddress (GUID serviceProvider);
+  ~DPAddress ();
 
   DPAddress* add (DPCOMPOUNDADDRESSELEMENT* element);
-  DPAddress* add (GUID type, void* data, int dataSize);
+  DPAddress* add (GUID type, void* data, DWORD dataSize);
 
   size_t size ();
-  DPCOMPOUNDADDRESSELEMENT* alloc ();
+  void alloc ();
+  pair<void*, DWORD> unwrap ();
 
   static DPAddress* ip (string ip = "");
 };

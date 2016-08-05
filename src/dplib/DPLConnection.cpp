@@ -1,9 +1,12 @@
-#include <stdlib.h>
-#include <dplobby.h>
 #include "DPAddress.hpp"
 #include "DPSessionDesc.hpp"
 #include "DPName.hpp"
 #include "DPLConnection.hpp"
+#include <stdlib.h>
+#include <dplobby.h>
+#include <tuple>
+
+using std::tie;
 
 namespace dplib {
 
@@ -13,30 +16,11 @@ DPLConnection::DPLConnection (DPAddress* address, DPSessionDesc* sessionDesc, DP
     :
     address(address),
     sessionDesc(sessionDesc),
-    name(playerName) {
+    name(playerName),
+    dpConnection(NULL) {
 }
 
-// FIXME move to DPAddress when DPLobby is a singleton
-static void createCompoundAddress (
-  IDirectPlayLobby3A* lobby,
-  DPAddress* builder,
-  void** address,
-  DWORD* addressSize
-) {
-  auto count = builder->size();
-  auto addressElements = builder->alloc();
-
-  auto hr = lobby->CreateCompoundAddress(addressElements, count, NULL, addressSize);
-  if (hr == DPERR_BUFFERTOOSMALL) {
-    *address = new BYTE[*addressSize];
-    hr = lobby->CreateCompoundAddress(addressElements, count, *address, addressSize);
-    if (FAILED(hr)) {
-      return;
-    }
-  }
-}
-
-void DPLConnection::alloc (IDirectPlayLobby3A* lobby) {
+void DPLConnection::alloc () {
   auto connection = new DPLCONNECTION;
   connection->dwSize = sizeof(DPLCONNECTION);
   connection->dwFlags = this->sessionDesc->isHost() ?
@@ -45,17 +29,26 @@ void DPLConnection::alloc (IDirectPlayLobby3A* lobby) {
   connection->lpPlayerName = this->name->unwrap();
   connection->guidSP = DPSPGUID_NICE;
 
-  createCompoundAddress(lobby, this->address, &connection->lpAddress, &connection->dwAddressSize);
+  tie(
+    connection->lpAddress,
+    connection->dwAddressSize
+  ) = this->address->unwrap();
 
   this->dpConnection = connection;
 }
 
 DPLCONNECTION* DPLConnection::unwrap () {
+  if (!this->dpConnection) {
+    this->alloc();
+  }
   return this->dpConnection;
 }
 
 DPLConnection::~DPLConnection () {
-  delete this->dpConnection;
+  if (this->dpConnection) {
+    delete this->dpConnection;
+    this->dpConnection = NULL;
+  }
 }
 
 }

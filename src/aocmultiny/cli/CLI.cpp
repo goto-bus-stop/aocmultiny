@@ -39,7 +39,7 @@ void CLI::start () {
   this->irc->user(player_name);
 
   auto game = new DPGameAoC();
-  auto lobby = new DPLobby(game, player_name);
+  auto lobby = DPLobby::get()->setGame(game)->setPlayerName(player_name);
 
   this->irc->on("323", [this] (auto irc, auto message) {
     stringstream room_names ("Rooms:");

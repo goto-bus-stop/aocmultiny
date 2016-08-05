@@ -16,8 +16,7 @@ private:
 public:
   DPLConnection (DPAddress* address, DPSessionDesc* sessionDesc, DPName* playerName);
   ~DPLConnection ();
-  // FIXME remove this parameter when DPLobby is a singleton
-  void alloc (IDirectPlayLobby3A* lobby);
+  void alloc ();
   DPLCONNECTION* unwrap ();
 };
 

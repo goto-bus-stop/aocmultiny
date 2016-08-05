@@ -11,6 +11,7 @@
 #include <wx/app.h>
 
 using namespace std;
+using dplib::DPLobby;
 
 namespace aocmultiny {
 
@@ -20,11 +21,12 @@ void main (vector<string> params) {
 
   auto action = params.size() > 0 ? params[0] : "";
   if (action == "host") {
-    auto lobby = new dplib::DPLobby(new dplib::DPGameAoC(), "Hosting");
+    wcout << "[main] Hosting" << endl;
+    auto lobby = DPLobby::get()->setGame(new dplib::DPGameAoC())->setPlayerName("Hosting");
     lobby->host();
     lobby->launch();
   } else if (action == "join") {
-    auto lobby = new dplib::DPLobby(new dplib::DPGameAoC(), "Joining");
+    auto lobby = DPLobby::get()->setGame(new dplib::DPGameAoC())->setPlayerName("Joining");
     lobby->join({ 0 }, params[1]);
     lobby->launch();
   } else if (action == "cli") {
