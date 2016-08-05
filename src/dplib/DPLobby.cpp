@@ -123,7 +123,7 @@ void DPLobby::sendLobbyMessage (int flags, int appId, void* data, int size) {
 }
 
 void DPLobby::launch () {
-  DPAddress address (this->dpLobby, this->hostIp);
+  const auto address = DPAddress::ip(this->hostIp);
   const auto gameGuid = this->game->getGameGuid();
   const auto sessionDesc = new DPSessionDesc(gameGuid, this->guid, "Session", "", this->isHosting);
   const auto playerName = new DPName(this->playerName);
@@ -133,6 +133,8 @@ void DPLobby::launch () {
   DWORD appId = 0;
 
   wcout << "[DPLobby::launch] Launching app" << endl;
+
+  connection->alloc(this->dpLobby);
 
   auto hr = this->dpLobby->RunApplication(0, &appId, connection->unwrap(), receiveEvent);
   if (FAILED(hr)) {
@@ -151,6 +153,7 @@ void DPLobby::launch () {
   delete connection;
   delete playerName;
   delete sessionDesc;
+  delete address;
 }
 
 }

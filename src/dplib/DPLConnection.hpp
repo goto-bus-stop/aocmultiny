@@ -7,19 +7,18 @@
 namespace dplib {
 
 class DPLConnection {
-
 private:
-  DPAddress address;
+  DPAddress* address;
   DPSessionDesc* sessionDesc;
   DPName* name;
   DPLCONNECTION* dpConnection;
 
 public:
-  DPLConnection (DPAddress address, DPSessionDesc* sessionDesc, DPName* playerName);
+  DPLConnection (DPAddress* address, DPSessionDesc* sessionDesc, DPName* playerName);
   ~DPLConnection ();
-  void alloc ();
+  // FIXME remove this parameter when DPLobby is a singleton
+  void alloc (IDirectPlayLobby3A* lobby);
   DPLCONNECTION* unwrap ();
-
 };
 
 }

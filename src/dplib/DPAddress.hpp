@@ -1,23 +1,28 @@
 #pragma once
 #include <string>
+#include <vector>
 #include <dplobby.h>
+
+using std::string;
+using std::vector;
 
 namespace dplib {
 
 class DPAddress {
-
 private:
-  LPDIRECTPLAYLOBBY3A lobby;
-  std::string ip;
+  vector<DPCOMPOUNDADDRESSELEMENT*> elements;
 
 public:
-  void* address;
-  int size;
+  DPAddress ();
+  DPAddress (GUID serviceProvider);
 
-  DPAddress (LPDIRECTPLAYLOBBY3A lobby, std::string ip);
-  void alloc ();
-  void* unwrap ();
+  DPAddress* add (DPCOMPOUNDADDRESSELEMENT* element);
+  DPAddress* add (GUID type, void* data, int dataSize);
 
+  size_t size ();
+  DPCOMPOUNDADDRESSELEMENT* alloc ();
+
+  static DPAddress* ip (string ip = "");
 };
 
 }

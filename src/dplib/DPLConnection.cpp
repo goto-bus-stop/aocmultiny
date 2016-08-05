@@ -9,15 +9,34 @@ namespace dplib {
 
 const GUID DPSPGUID_NICE = { 0xe2dd8ebe, 0x1f03, 0x43b7, { 0x8d, 0x92, 0x9c, 0x6c, 0x2f, 0x5c, 0x44, 0x26 } };
 
-DPLConnection::DPLConnection (DPAddress address, DPSessionDesc* sessionDesc, DPName* playerName)
+DPLConnection::DPLConnection (DPAddress* address, DPSessionDesc* sessionDesc, DPName* playerName)
     :
     address(address),
     sessionDesc(sessionDesc),
     name(playerName) {
-  this->alloc();
 }
 
-void DPLConnection::alloc () {
+// FIXME move to DPAddress when DPLobby is a singleton
+static void createCompoundAddress (
+  IDirectPlayLobby3A* lobby,
+  DPAddress* builder,
+  void** address,
+  DWORD* addressSize
+) {
+  auto count = builder->size();
+  auto addressElements = builder->alloc();
+
+  auto hr = lobby->CreateCompoundAddress(addressElements, count, NULL, addressSize);
+  if (hr == DPERR_BUFFERTOOSMALL) {
+    *address = new BYTE[*addressSize];
+    hr = lobby->CreateCompoundAddress(addressElements, count, *address, addressSize);
+    if (FAILED(hr)) {
+      return;
+    }
+  }
+}
+
+void DPLConnection::alloc (IDirectPlayLobby3A* lobby) {
   auto connection = new DPLCONNECTION;
   connection->dwSize = sizeof(DPLCONNECTION);
   connection->dwFlags = this->sessionDesc->isHost() ?
@@ -26,8 +45,8 @@ void DPLConnection::alloc () {
   connection->lpPlayerName = this->name->unwrap();
   connection->guidSP = DPSPGUID_NICE;
 
-  connection->lpAddress = this->address.address;
-  connection->dwAddressSize = this->address.size;
+  createCompoundAddress(lobby, this->address, &connection->lpAddress, &connection->dwAddressSize);
+
   this->dpConnection = connection;
 }
 

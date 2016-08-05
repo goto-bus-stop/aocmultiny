@@ -10,50 +10,55 @@ namespace dplib {
 
 const GUID DPSPGUID_NICE = { 0xe2dd8ebe, 0x1f03, 0x43b7, { 0x8d, 0x92, 0x9c, 0x6c, 0x2f, 0x5c, 0x44, 0x26 } };
 
-DPAddress::DPAddress (LPDIRECTPLAYLOBBY3A lobby, std::string ip)
+DPAddress::DPAddress ()
     :
-    lobby(lobby),
-    ip(ip) {
-  this->alloc();
+    elements(vector<DPCOMPOUNDADDRESSELEMENT*>()) {
 }
 
-void DPAddress::alloc () {
-  auto addressElements = new DPCOMPOUNDADDRESSELEMENT[2];
-  int elements = 0;
-  void* address;
-  DWORD addressSize = 0;
+DPAddress::DPAddress (GUID serviceProvider)
+    :
+    DPAddress() {
+  this->add(DPAID_ServiceProvider, &serviceProvider, sizeof(serviceProvider));
+}
 
-  // TCP/IP service provider
-  addressElements[0].guidDataType = DPAID_ServiceProvider;
-  addressElements[0].lpData = const_cast<void*>(
-    static_cast<const void*>(&DPSPGUID_TCPIP));
-  addressElements[0].dwDataSize = sizeof(GUID);
-  elements++;
-  // Host IP
-  addressElements[1].guidDataType = DPAID_INet;
-  addressElements[1].lpData = const_cast<void*>(
-    static_cast<const void*>(this->ip.c_str()));
-  addressElements[1].dwDataSize = this->ip.length() + 1;
-  elements++;
+DPAddress* DPAddress::add (DPCOMPOUNDADDRESSELEMENT* element) {
+  this->elements.push_back(element);
 
-  std::wcout << "[DPAddress::alloc] SPID: " << to_wstring(DPSPGUID_NICE) << std::endl;
+  return this;
+}
 
-  auto hr = this->lobby->CreateCompoundAddress(addressElements, 2, NULL, &addressSize);
-  if (hr == DPERR_BUFFERTOOSMALL) {
-    this->size = addressSize;
-    address = new BYTE[addressSize];
-    hr = this->lobby->CreateCompoundAddress(addressElements, elements, address, &addressSize);
-    if (FAILED(hr)) {
-      free(address);
-      address = NULL;
-      return;
-    }
-    this->address = address;
+DPAddress* DPAddress::add (GUID type, void* data, int dataSize) {
+  auto element = new DPCOMPOUNDADDRESSELEMENT;
+  element->guidDataType = type;
+  element->lpData = data;
+  element->dwDataSize = dataSize;
+
+  return this->add(element);
+}
+
+size_t DPAddress::size () {
+  return this->elements.size();
+}
+
+DPCOMPOUNDADDRESSELEMENT* DPAddress::alloc () {
+  const auto elements = this->size();
+  const auto addressElements = new DPCOMPOUNDADDRESSELEMENT[elements];
+
+  for (size_t i = 0; i < elements; i++) {
+    addressElements[i] = *(this->elements[i]);
   }
+
+  return addressElements;
 }
 
-void* DPAddress::unwrap () {
-  return this->address;
+DPAddress* DPAddress::ip (string ip) {
+  auto address = new DPAddress(DPSPGUID_TCPIP);
+
+  auto size = ip.size();
+  void* ipStr = new char[size];
+  memcpy(ipStr, ip.c_str(), size);
+
+  return address->add(DPAID_INet, ipStr, size);
 }
 
 }
