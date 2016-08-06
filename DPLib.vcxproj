@@ -18,33 +18,63 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\dplay.h" />
+    <ClInclude Include="include\dplaysp.h" />
+    <ClInclude Include="include\dplobby.h" />
+    <ClInclude Include="src\dplib\DPAddress.hpp" />
+    <ClInclude Include="src\dplib\DPGame.hpp" />
+    <ClInclude Include="src\dplib\DPGameAoC.hpp" />
+    <ClInclude Include="src\dplib\DPLConnection.hpp" />
+    <ClInclude Include="src\dplib\DPLobby.hpp" />
+    <ClInclude Include="src\dplib\DPName.hpp" />
+    <ClInclude Include="src\dplib\DPSessionDesc.hpp" />
+    <ClInclude Include="src\dplib\main.hpp" />
+    <ClInclude Include="src\dplib\util.hpp" />
+    <ClInclude Include="src\util.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\dplib\DPAddress.cpp" />
+    <ClCompile Include="src\dplib\DPGame.cpp" />
+    <ClCompile Include="src\dplib\DPGameAoC.cpp" />
+    <ClCompile Include="src\dplib\DPLConnection.cpp" />
+    <ClCompile Include="src\dplib\DPLobby.cpp" />
+    <ClCompile Include="src\dplib\DPName.cpp" />
+    <ClCompile Include="src\dplib\DPSessionDesc.cpp" />
+    <ClCompile Include="src\dplib\util.cpp" />
+    <ClCompile Include="src\util.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{43DB0EF1-0404-4BE1-8305-D312D7447641}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{466B75EE-CB97-42D6-8CA6-C0672109E36A}</ProjectGuid>
+    <RootNamespace>DPLib</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <UseOfAtl>Static</UseOfAtl>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <UseOfAtl>Static</UseOfAtl>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -64,75 +94,60 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(WindowsSDK_IncludePath);$(WXWIN)\include\msvc;$(WXWIN)\include;$(VC_IncludePath);$(AOCMULTINY_DPLAY_SDK)\Include;$(SolutionDir)\src\</IncludePath>
-    <OutDir>$(SolutionDir)$(Configuration)\$(ProjectName)\</OutDir>
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\lib</LibraryPath>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>true</LinkIncremental>
     <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
-    <OutDir>$(SolutionDir)$(Configuration)\$(ProjectName)\</OutDir>
+    <TargetExt>.lib</TargetExt>
+    <OutDir>$(SolutionDir)lib\</OutDir>
+    <TargetName>dplib</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetName>dplib</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <OutDir>$(SolutionDir)lib\</OutDir>
+    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;WIN32;_WINDOWS;WINVER=0x0400;__WXMSW__;wxUSE_GUI=1;_DEBUG;__WXDEBUG__;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
-      <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
+      <SDLCheck>true</SDLCheck>
+      <ObjectFileName>$(IntDir)\%(RelativeDir)\</ObjectFileName>
     </ClCompile>
-    <Link>
-      <TargetMachine>MachineX86</TargetMachine>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>$(AOCMULTINY_DPLAY_SDK)\Lib\x86;$(WXWIN)\lib\vc_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>dplib.lib;dplayx.lib;dxguid.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;WINVER=0x0400;__WXMSW__;wxUSE_GUI=1;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ObjectFileName>$(IntDir)\%(RelativeDir)\</ObjectFileName>
     </ClCompile>
     <Link>
-      <TargetMachine>MachineX86</TargetMachine>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(WXWIN)\include\msvc;$(WXWIN)\include;$(AOCMULTINY_DPLAY_SDK)\Include</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="src\aocmultiny\cli\CLI.cpp" />
-    <ClCompile Include="src\aocmultiny\gui\App.cpp" />
-    <ClCompile Include="src\aocmultiny\gui\Chat.cpp" />
-    <ClCompile Include="src\aocmultiny\gui\MainFrame.cpp" />
-    <ClCompile Include="src\aocmultiny\gui\RoomFrame.cpp" />
-    <ClCompile Include="src\aocmultiny\gui\RoomList.cpp" />
-    <ClCompile Include="src\aocmultiny\irc\Channel.cpp" />
-    <ClCompile Include="src\aocmultiny\irc\IRC.cpp" />
-    <ClCompile Include="src\aocmultiny\main.cpp" />
-    <ClCompile Include="src\util.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\aocmultiny\cli\CLI.hpp" />
-    <ClInclude Include="src\aocmultiny\gui\App.hpp" />
-    <ClInclude Include="src\aocmultiny\gui\Chat.hpp" />
-    <ClInclude Include="src\aocmultiny\gui\MainFrame.hpp" />
-    <ClInclude Include="src\aocmultiny\gui\RoomFrame.hpp" />
-    <ClInclude Include="src\aocmultiny\gui\RoomList.hpp" />
-    <ClInclude Include="src\aocmultiny\irc\Channel.hpp" />
-    <ClInclude Include="src\aocmultiny\irc\IRC.hpp" />
-    <ClInclude Include="src\aocmultiny\main.hpp" />
-    <ClInclude Include="src\util.hpp" />
-  </ItemGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
