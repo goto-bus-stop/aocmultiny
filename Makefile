@@ -37,8 +37,19 @@ NICESP_OBJECTS = $(NICESP_FILES:.cpp=.o) $(UTIL_OBJECTS)
 NICESP_CFLAGS = $(shell $(PKGCONFIG) --cflags gio-2.0 nice)
 NICESP_LDFLAGS = -shared -lole32 -ldxguid $(shell $(PKGCONFIG) --libs gio-2.0 nice)
 
+# Tests
+TEST_TARGET = test.exe
+TEST_FILES = $(shell find src -path "*/test/*.cpp") src/test_main.cpp
+TEST_OBJECTS = $(TEST_FILES:.cpp=.o)
+TEST_LDFLAGS = $(LD_DPLIB) -lole32
+
 # All objects (used for cleanup)
-OBJECTS = $(UTIL_OBJECTS) $(CLIENT_OBJECTS) $(DPLIB_OBJECTS) $(NICESP_OBJECTS)
+OBJECTS = \
+	$(UTIL_OBJECTS) \
+	$(CLIENT_OBJECTS) \
+	$(DPLIB_OBJECTS) \
+	$(NICESP_OBJECTS) \
+	$(TEST_OBJECTS)
 
 # Default: build both targets
 
@@ -72,14 +83,22 @@ $(NICESP_SRC)/%.o: $(NICESP_SRC)/%.cpp
 src/%.o: src/%.cpp
 	$(CC) $(CFLAGS) $< -o $@
 
+# Tests
+
+$(TEST_TARGET): $(DPLIB_TARGET) $(TEST_OBJECTS)
+	$(CC) -o $@ $(TEST_OBJECTS) $(TEST_LDFLAGS)
+
 # Running the Application
 
 run: $(CLIENT_TARGET)
 	wine $(CLIENT_TARGET)
 
+test: $(TEST_TARGET)
+	wine $(TEST_TARGET)
+
 # Cleanups
 
 clean:
-	rm -f $(OBJECTS) $(CLIENT_TARGET) $(NICESP_TARGET) $(DPLIB_TARGET)
+	rm -f $(OBJECTS) $(CLIENT_TARGET) $(NICESP_TARGET) $(DPLIB_TARGET) $(TEST_TARGET)
 
 .PHONY: all run clean
