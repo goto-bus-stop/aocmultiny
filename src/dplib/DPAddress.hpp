@@ -29,6 +29,7 @@ public:
   void alloc ();
   pair<void*, DWORD> unwrap ();
 
+  static DPAddress* parse (void* data, DWORD size);
   static DPAddress* ip (string ip = "");
 };
 

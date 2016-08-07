@@ -3,6 +3,7 @@
 #include "../DPAddress.hpp"
 #include "../DPLobby.hpp"
 
+using std::string;
 using std::tie;
 
 TEST_CASE ("Reading address parts", "[DPAddress]") {
@@ -34,4 +35,17 @@ TEST_CASE ("Allocate DirectPlay compound address", "[DPAddress]") {
   DWORD addressSize;
   tie(addressData, addressSize) = address->unwrap();
   CHECK(lobby->EnumAddress(stubEnumAddressCallback, addressData, addressSize, NULL) == DP_OK);
+}
+
+TEST_CASE ("Parsing DirectPlay compound addresses", "[DPAddress]") {
+  string expectedIp = "1.2.3.4";
+  auto address = dplib::DPAddress::ip(expectedIp);
+  void* addressData;
+  DWORD addressSize;
+  tie(addressData, addressSize) = address->unwrap();
+
+  address = dplib::DPAddress::parse(addressData, addressSize);
+  auto ipPart = address->get(DPAID_INet);
+  auto parsedIp = static_cast<char*>(ipPart.first);
+  CHECK(string(parsedIp) == expectedIp);
 }

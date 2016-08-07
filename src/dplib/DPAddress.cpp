@@ -102,4 +102,21 @@ DPAddress* DPAddress::ip (string ip) {
   return address;
 }
 
+BOOL FAR PASCAL parseDPAddressCallback (REFGUID type, DWORD size, const void* data, void* ctx) {
+  auto address = static_cast<DPAddress*>(ctx);
+
+  auto copy = new BYTE[size];
+  memcpy(copy, data, size);
+  address->add(type, copy, size);
+
+  return TRUE;
+}
+
+DPAddress* DPAddress::parse (void* data, DWORD size) {
+  auto address = new DPAddress();
+  DPLobby::get()->getInternalLobby()
+    ->EnumAddress(parseDPAddressCallback, data, size, address);
+  return address;
+}
+
 }
