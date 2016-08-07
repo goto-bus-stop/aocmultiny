@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string>
 
-namespace aocmultiny {
 namespace dplib {
 
 class DPName {
@@ -20,5 +19,4 @@ public:
 
 };
 
-}
 }

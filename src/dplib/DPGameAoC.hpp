@@ -1,7 +1,6 @@
 #pragma once
 #include "DPGame.hpp"
 
-namespace aocmultiny {
 namespace dplib {
 
 // {B3F2E132-FE6A-11D2-8DEE-00A0C90832B4}
@@ -76,5 +75,4 @@ public:
   void receiveMessage (DPLobbyMessage* message);
 };
 
-}
 }

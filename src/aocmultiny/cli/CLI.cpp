@@ -4,30 +4,18 @@
 #include <algorithm>
 #include "CLI.hpp"
 #include "../irc/IRC.hpp"
-#include "../dplib/DPLobby.hpp"
-#include "../dplib/DPGameAoC.hpp"
+#include "../../util.hpp"
+#include <dplib/DPLobby.hpp>
+#include <dplib/DPGameAoC.hpp>
 
 using std::to_string;
 using std::string;
 using std::wstring;
 using std::stringstream;
 using std::for_each;
-using aocmultiny::dplib::DPLobby;
-using aocmultiny::dplib::DPGameAoC;
+using dplib::DPLobby;
+using dplib::DPGameAoC;
 using aocmultiny::irc::IRC;
-
-namespace std {
-  auto to_string (GUID g) {
-    // so beautiful
-    auto wchr = static_cast<wchar_t*>(calloc(50, sizeof(wchar_t)));
-    StringFromGUID2(g, wchr, 50);
-    string str;
-    for (size_t i = 0; i < 50 && wchr[i] != '\0'; i++) {
-      str.push_back(static_cast<char>(wchr[i]));
-    }
-    return str;
-  }
-}
 
 namespace aocmultiny {
 namespace cli {
@@ -51,7 +39,7 @@ void CLI::start () {
   this->irc->user(player_name);
 
   auto game = new DPGameAoC();
-  auto lobby = new DPLobby(game, player_name);
+  auto lobby = DPLobby::get()->setGame(game)->setPlayerName(player_name);
 
   this->irc->on("323", [this] (auto irc, auto message) {
     stringstream room_names ("Rooms:");

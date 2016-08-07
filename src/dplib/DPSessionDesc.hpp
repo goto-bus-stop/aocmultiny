@@ -2,7 +2,6 @@
 #include <string>
 #include <dplobby.h>
 
-namespace aocmultiny {
 namespace dplib {
 
 class DPSessionDesc {
@@ -23,5 +22,4 @@ public:
   DPSESSIONDESC2* unwrap ();
 };
 
-}
 }

@@ -7,9 +7,9 @@
 #include <dplay.h>
 #include <dplobby.h>
 
+using std::string;
 using aocmultiny::EventListeners;
 
-namespace aocmultiny {
 namespace dplib {
 
 class DPGame;
@@ -38,25 +38,31 @@ public:
 
 class DPLobby {
 private:
-  IDirectPlay3* dp;
-  LPDIRECTPLAYLOBBY3A dpLobby = NULL;
+  IDirectPlay4A* dp;
+  IDirectPlayLobby3A* dpLobby = NULL;
 
   DPGame* game;
 
   GUID guid;
   bool isHosting;
-  std::string hostIp;
-  std::string playerName;
+  string hostIp;
+  string playerName;
 
   HRESULT create ();
   bool receiveMessage (DWORD appId);
 
+  DPLobby ();
+
 public:
-  DPLobby (DPGame* game, std::string playerName);
-  DPLobby (DPGame* game);
+  static DPLobby* get ();
+
+  IDirectPlayLobby3A* getInternalLobby ();
+
+  DPLobby* setGame (DPGame* game);
+  DPLobby* setPlayerName (string playerName);
 
   void host ();
-  void join (GUID sessionId, std::string hostIp);
+  void join (GUID sessionId, string hostIp);
   GUID getSessionGUID ();
 
   void sendLobbyMessage (int flags, int appId, void* data, int size);
@@ -66,5 +72,4 @@ public:
   EventListeners<> onAppTerminated;
 };
 
-}
 }

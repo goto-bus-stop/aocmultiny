@@ -1,0 +1,7 @@
+platform: x86
+build:
+  project: AoCMultiny.sln
+
+install:
+  - git submodule update --init
+  - copy build\* libnice\win32\vs9\

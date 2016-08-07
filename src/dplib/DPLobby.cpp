@@ -5,7 +5,6 @@
 
 using namespace std;
 
-namespace aocmultiny {
 namespace dplib {
 
 DPLobbyMessage::DPLobbyMessage (DPLobby* lobby, int appId, int flags, void* data, int size)
@@ -38,17 +37,19 @@ DPLobbyMessage::~DPLobbyMessage () {
   free(this->data);
 }
 
-DPLobby::DPLobby (DPGame* game)
-    :
-    DPLobby(game, "Player") {
+DPLobby* DPLobby::get () {
+  static DPLobby* instance;
+  if (!instance) {
+    instance = new DPLobby();
+  }
+  return instance;
 }
 
-DPLobby::DPLobby (DPGame* game, string playerName)
+DPLobby::DPLobby ()
     :
-    game(game),
     guid({ 0 }),
     isHosting(false),
-    playerName(playerName) {
+    playerName("Player") {
   CoCreateInstance(
     CLSID_DirectPlay,
     NULL,
@@ -69,6 +70,20 @@ HRESULT DPLobby::create () {
     reinterpret_cast<void**>(&this->dpLobby)
   );
   return hr;
+}
+
+IDirectPlayLobby3A* DPLobby::getInternalLobby () {
+  return this->dpLobby;
+}
+
+DPLobby* DPLobby::setGame (DPGame* game) {
+  this->game = game;
+  return this;
+}
+
+DPLobby* DPLobby::setPlayerName (string playerName) {
+  this->playerName = playerName;
+  return this;
 }
 
 /**
@@ -124,7 +139,7 @@ void DPLobby::sendLobbyMessage (int flags, int appId, void* data, int size) {
 }
 
 void DPLobby::launch () {
-  DPAddress address (this->dpLobby, this->hostIp);
+  const auto address = DPAddress::ip(this->hostIp);
   const auto gameGuid = this->game->getGameGuid();
   const auto sessionDesc = new DPSessionDesc(gameGuid, this->guid, "Session", "", this->isHosting);
   const auto playerName = new DPName(this->playerName);
@@ -152,7 +167,7 @@ void DPLobby::launch () {
   delete connection;
   delete playerName;
   delete sessionDesc;
+  delete address;
 }
 
-}
 }

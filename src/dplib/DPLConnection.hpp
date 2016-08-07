@@ -4,24 +4,20 @@
 #include "DPName.hpp"
 #include "DPSessionDesc.hpp"
 
-namespace aocmultiny {
 namespace dplib {
 
 class DPLConnection {
-
 private:
-  DPAddress address;
+  DPAddress* address;
   DPSessionDesc* sessionDesc;
   DPName* name;
   DPLCONNECTION* dpConnection;
 
 public:
-  DPLConnection (DPAddress address, DPSessionDesc* sessionDesc, DPName* playerName);
+  DPLConnection (DPAddress* address, DPSessionDesc* sessionDesc, DPName* playerName);
   ~DPLConnection ();
   void alloc ();
   DPLCONNECTION* unwrap ();
-
 };
 
-}
 }

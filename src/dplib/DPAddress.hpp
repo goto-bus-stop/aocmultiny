@@ -1,25 +1,34 @@
 #pragma once
-#include <string>
 #include <dplobby.h>
+#include <string>
+#include <vector>
+#include <tuple>
 
-namespace aocmultiny {
+using std::pair;
+using std::string;
+using std::vector;
+
 namespace dplib {
 
 class DPAddress {
-
 private:
-  LPDIRECTPLAYLOBBY3A lobby;
-  std::string ip;
+  vector<DPCOMPOUNDADDRESSELEMENT*> elements;
+  void* address;
+  DWORD addressSize = 0;
 
 public:
-  void* address;
-  int size;
+  DPAddress ();
+  DPAddress (GUID serviceProvider);
+  ~DPAddress ();
 
-  DPAddress (LPDIRECTPLAYLOBBY3A lobby, std::string ip);
+  DPAddress* add (DPCOMPOUNDADDRESSELEMENT* element);
+  DPAddress* add (GUID type, void* data, DWORD dataSize);
+
+  size_t size ();
   void alloc ();
-  void* unwrap ();
+  pair<void*, DWORD> unwrap ();
 
+  static DPAddress* ip (string ip = "");
 };
 
-}
 }

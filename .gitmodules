@@ -1,0 +1,3 @@
+[submodule "libnice"]
+	path = libnice
+	url = git://github.com/libnice/libnice.git
