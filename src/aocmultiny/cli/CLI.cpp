@@ -5,7 +5,9 @@
 #include "CLI.hpp"
 #include "../irc/IRC.hpp"
 #include "../../util.hpp"
+#include <dplib/DPAddress.hpp>
 #include <dplib/DPLobby.hpp>
+#include <dplib/DPSession.hpp>
 #include <dplib/DPGameAoC.hpp>
 
 using std::to_string;
@@ -13,7 +15,9 @@ using std::string;
 using std::wstring;
 using std::stringstream;
 using std::for_each;
+using dplib::DPAddress;
 using dplib::DPLobby;
+using dplib::DPSession;
 using dplib::DPGameAoC;
 using aocmultiny::irc::IRC;
 
@@ -39,7 +43,8 @@ void CLI::start () {
   this->irc->user(player_name);
 
   auto game = new DPGameAoC();
-  auto lobby = DPLobby::get()->setGame(game)->setPlayerName(player_name);
+  auto session = DPLobby::get()->createSession(game);
+  session->setPlayerName(player_name);
 
   this->irc->on("323", [this] (auto irc, auto message) {
     stringstream room_names ("Rooms:");
@@ -68,7 +73,7 @@ void CLI::start () {
     }
   });
 
-  this->irc->on("PRIVMSG", [this, lobby] (auto irc, auto message) {
+  this->irc->on("PRIVMSG", [this, session] (auto irc, auto message) {
     auto action = message->params.back();
     if (this->irc->is_ctcp(action)) {
       auto ctcp = split(action.substr(1, -1), ' ');
@@ -78,8 +83,9 @@ void CLI::start () {
           sessionStr.push_back(static_cast<wchar_t>(c));
         }
         GUID sessionId; IIDFromString(sessionStr.c_str(), &sessionId);
-        lobby->join(sessionId, ctcp[2]);
-        lobby->launch();
+        session
+          ->join(DPAddress::ip(ctcp[2]), sessionId)
+          ->launch();
       }
     }
   });
@@ -102,14 +108,14 @@ void CLI::start () {
         this->println("Join a room first before starting a game.");
         continue;
       }
-      lobby->host();
-      auto guid = lobby->getSessionGUID();
+      session->host(DPAddress::ip(""));
+      auto guid = session->getSessionGUID();
       this->println("Launching session " + to_string(guid));
 
-      lobby->onConnectSucceeded += [this, guid] () {
+      session->onConnectSucceeded += [this, guid] () {
         this->irc->ctcp("#" + this->current_room, "AOC_START " + to_string(guid));
       };
-      lobby->launch();
+      session->launch();
     }
   }
 }

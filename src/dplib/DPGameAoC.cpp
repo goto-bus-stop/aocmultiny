@@ -29,13 +29,13 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
     wcout << "[DPGameAoC::receiveMessage] received STANDARD message, discarding" << endl;
     return;
   }
-  auto lobby = message->lobby;
+  auto session = message->session;
   auto sysMsg = static_cast<DPLMSG_SYSTEMMESSAGE*>(message->data);
   wcout << "[DPGameAoC::receiveMessage] received SYSTEMMESSAGE, processing" << endl;
   switch (sysMsg->dwType) {
   case DPLSYS_APPTERMINATED:
     wcout << "[DPGameAoC::receiveMessage] received APPTERMINATED message" << endl;
-    lobby->onAppTerminated.emit();
+    session->onAppTerminated.emit();
     message->stop();
     return;
   case DPLSYS_GETPROPERTY: {
@@ -78,7 +78,7 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
     break;
   case DPLSYS_DPLAYCONNECTSUCCEEDED:
     wcout << "[DPGameAoC::receiveMessage] received CONNECTSUCCEEDED message!" << endl;
-    lobby->onConnectSucceeded.emit();
+    session->onConnectSucceeded.emit();
     break;
   default:
     wcout << "[DPGameAoC::receiveMessage] received unknown message: " << sysMsg->dwType << endl;

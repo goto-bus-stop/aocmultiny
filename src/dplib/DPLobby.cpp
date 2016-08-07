@@ -2,22 +2,23 @@
 #include <iostream>
 #include "DPLobby.hpp"
 #include "DPGame.hpp"
+#include "DPSession.hpp"
 
 using namespace std;
 
 namespace dplib {
 
-DPLobbyMessage::DPLobbyMessage (DPLobby* lobby, int appId, int flags, void* data, int size)
+DPLobbyMessage::DPLobbyMessage (int appId, int flags, void* data, int size)
     :
     appId(appId),
-    lobby(lobby),
     flags(flags),
     size(size),
     data(data) {
 }
 
 void DPLobbyMessage::reply (void* data, int size) {
-  this->lobby->sendLobbyMessage(0, this->appId, data, size);
+  auto lobby = DPLobby::get();
+  lobby->sendLobbyMessage(0, this->appId, data, size);
 }
 
 void DPLobbyMessage::stop () {
@@ -45,11 +46,7 @@ DPLobby* DPLobby::get () {
   return instance;
 }
 
-DPLobby::DPLobby ()
-    :
-    guid({ 0 }),
-    isHosting(false),
-    playerName("Player") {
+DPLobby::DPLobby () {
   CoCreateInstance(
     CLSID_DirectPlay,
     NULL,
@@ -76,98 +73,56 @@ IDirectPlayLobby3A* DPLobby::getInternalLobby () {
   return this->dpLobby;
 }
 
-DPLobby* DPLobby::setGame (DPGame* game) {
-  this->game = game;
-  return this;
-}
-
-DPLobby* DPLobby::setPlayerName (string playerName) {
-  this->playerName = playerName;
-  return this;
-}
-
-/**
- * Host a game.
- */
-void DPLobby::host () {
-  CoCreateGuid(&this->guid);
-  this->isHosting = true;
-  this->hostIp = "";
-  return;
-}
-
-/**
- * Join a game.
- */
-void DPLobby::join (GUID sessionId, string remoteIp) {
-  this->guid = sessionId;
-  this->hostIp = remoteIp;
-  return;
-}
-
-GUID DPLobby::getSessionGUID () {
-  return this->guid;
-}
-
-bool DPLobby::receiveMessage (DWORD appId) {
+DPLobbyMessage* DPLobby::receiveLobbyMessage (DWORD appId) {
   DWORD messageFlags;
   DWORD dataSize = 0;
   auto hr = this->dpLobby->ReceiveLobbyMessage(0, appId, &messageFlags, NULL, &dataSize);
   if (hr != DPERR_BUFFERTOOSMALL) {
-    wcout << "[DPLobby::receiveMessage] Error: should be BUFFERTOOSMALL" << endl;
-    return false;
+    wcout << "[DPLobby::receiveLobbyMessage] Error: should be BUFFERTOOSMALL" << endl;
+    return NULL;
   }
   messageFlags = 0;
   void* data = malloc(dataSize);
   hr = this->dpLobby->ReceiveLobbyMessage(0, appId, &messageFlags, data, &dataSize);
-  wcout << "[DPLobby::receiveMessage] received " << messageFlags << " : " << dataSize << endl;
+  wcout << "[DPLobby::receiveLobbyMessage] received " << messageFlags << " : " << dataSize << endl;
   if (FAILED(hr)) {
-    return false;
+    return NULL;
   }
 
-  auto message = new DPLobbyMessage(this, appId, messageFlags, data, dataSize);
-
-  this->game->receiveMessage(message);
-
-  auto stopping = message->requestedStop();
-  delete message;
-  return !stopping;
+  return new DPLobbyMessage(appId, messageFlags, data, dataSize);
 }
 
 void DPLobby::sendLobbyMessage (int flags, int appId, void* data, int size) {
   this->dpLobby->SendLobbyMessage(flags, appId, data, size);
 }
 
-void DPLobby::launch () {
-  const auto address = DPAddress::ip(this->hostIp);
-  const auto gameGuid = this->game->getGameGuid();
-  const auto sessionDesc = new DPSessionDesc(gameGuid, this->guid, "Session", "", this->isHosting);
-  const auto playerName = new DPName(this->playerName);
-  const auto connection = new DPLConnection(address, sessionDesc, playerName);
+DPSession* DPLobby::createSession (DPGame* game) {
+  return new DPSession(game);
+}
 
-  auto receiveEvent = CreateEvent(NULL, false, false, NULL);
-  DWORD appId = 0;
+/**
+ * Host a session using the default TCP/IP service provider.
+ */
+DPSession* DPLobby::hostSession (DPGame* game) {
+  return this->hostSession(game, DPAddress::ip(""));
+}
 
-  wcout << "[DPLobby::launch] Launching app" << endl;
+/**
+ * Host a session using a custom address.
+ */
+DPSession* DPLobby::hostSession (DPGame* game, DPAddress* address) {
+  auto session = this->createSession(game);
+  session->host(address);
+  return session;
+}
 
-  auto hr = this->dpLobby->RunApplication(0, &appId, connection->unwrap(), receiveEvent);
-  if (FAILED(hr)) {
-    // oops.
-    wcout << "[DPLobby::launch] Something went wrong:" << endl;
-    cout << getDPError(hr) << endl;
-  } else {
-    bool keepGoing = true;
-    while (keepGoing && WaitForSingleObject(receiveEvent, INFINITE) == WAIT_OBJECT_0) {
-      wcout << "[DPLobby::launch] receiving lobby message" << endl;
-      keepGoing = this->receiveMessage(appId);
-    }
-  }
-
-  wcout << "[DPLobby::launch] Cleaning up" << endl;
-  delete connection;
-  delete playerName;
-  delete sessionDesc;
-  delete address;
+/**
+ * Join a session on a remote machine.
+ */
+DPSession* DPLobby::joinSession (DPGame* game, DPAddress* address, GUID sessionGuid) {
+  auto session = this->createSession(game);
+  session->join(address, sessionGuid);
+  return session;
 }
 
 }

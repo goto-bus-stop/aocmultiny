@@ -15,6 +15,14 @@ using dplib::DPLobby;
 
 namespace aocmultiny {
 
+static wstring stow (string s) {
+  wstring w;
+  for (auto c : s) {
+    w.push_back(c);
+  }
+  return w;
+}
+
 void main (vector<string> params) {
   CoInitialize(NULL);
   wcout << "[main] Starting" << endl;
@@ -22,13 +30,20 @@ void main (vector<string> params) {
   auto action = params.size() > 0 ? params[0] : "";
   if (action == "host") {
     wcout << "[main] Hosting" << endl;
-    auto lobby = DPLobby::get()->setGame(new dplib::DPGameAoC())->setPlayerName("Hosting");
-    lobby->host();
-    lobby->launch();
+    auto game = new dplib::DPGameAoC();
+    auto session = DPLobby::get()->hostSession(game);
+    session
+      ->setPlayerName("Host")
+      ->launch();
   } else if (action == "join") {
-    auto lobby = DPLobby::get()->setGame(new dplib::DPGameAoC())->setPlayerName("Joining");
-    lobby->join({ 0 }, params[1]);
-    lobby->launch();
+    GUID sessionId; IIDFromString(stow(params[2]).c_str(), &sessionId);
+    wcout << "[main] Joining " << to_wstring(sessionId) << endl;
+    auto game = new dplib::DPGameAoC();
+    // TODO add in address stuff.
+    auto session = DPLobby::get()->joinSession(game, NULL, sessionId);
+    session
+      ->setPlayerName("Rando")
+      ->launch();
   } else if (action == "cli") {
     wcout << "[main] IRC" << endl;
     auto irc = new irc::IRC("localhost");

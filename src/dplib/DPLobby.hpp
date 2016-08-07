@@ -1,32 +1,28 @@
+#pragma once
 #include "DPAddress.hpp"
-#include "DPLConnection.hpp"
-#include "DPName.hpp"
-#include "DPSessionDesc.hpp"
+#include "DPGame.hpp"
+#include "DPSession.hpp"
 #include "util.hpp"
-#include "../util.hpp"
 #include <dplay.h>
 #include <dplobby.h>
 
 using std::string;
-using aocmultiny::EventListeners;
 
 namespace dplib {
 
-class DPGame;
-class DPLobby;
-class DPLobbyMessage;
+class DPSession;
 
 class DPLobbyMessage {
 private:
   bool shouldStop;
 public:
   int appId;
-  DPLobby* lobby;
+  DPSession* session;
   int flags;
   int size;
   void* data;
 
-  DPLobbyMessage (DPLobby* lobby, int appId, int flags, void* data, int size);
+  DPLobbyMessage (int appId, int flags, void* data, int size);
   ~DPLobbyMessage ();
   void reply (void* data, int size);
   void stop ();
@@ -41,15 +37,7 @@ private:
   IDirectPlay4A* dp;
   IDirectPlayLobby3A* dpLobby = NULL;
 
-  DPGame* game;
-
-  GUID guid;
-  bool isHosting;
-  string hostIp;
-  string playerName;
-
   HRESULT create ();
-  bool receiveMessage (DWORD appId);
 
   DPLobby ();
 
@@ -58,18 +46,13 @@ public:
 
   IDirectPlayLobby3A* getInternalLobby ();
 
-  DPLobby* setGame (DPGame* game);
-  DPLobby* setPlayerName (string playerName);
+  DPSession* createSession (DPGame* game);
+  DPSession* hostSession (DPGame* game);
+  DPSession* hostSession (DPGame* game, DPAddress* address);
+  DPSession* joinSession (DPGame* game, DPAddress* address, GUID sessionGuid);
 
-  void host ();
-  void join (GUID sessionId, string hostIp);
-  GUID getSessionGUID ();
-
+  DPLobbyMessage* receiveLobbyMessage (DWORD appId);
   void sendLobbyMessage (int flags, int appId, void* data, int size);
-
-  void launch ();
-  EventListeners<> onConnectSucceeded;
-  EventListeners<> onAppTerminated;
 };
 
 }
