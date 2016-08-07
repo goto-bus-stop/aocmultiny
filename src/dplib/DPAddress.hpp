@@ -23,6 +23,7 @@ public:
 
   DPAddress* add (DPCOMPOUNDADDRESSELEMENT* element);
   DPAddress* add (GUID type, void* data, DWORD dataSize);
+  pair<void*, DWORD> get (GUID type);
 
   size_t size ();
   void alloc ();

@@ -35,10 +35,20 @@ DPAddress* DPAddress::add (DPCOMPOUNDADDRESSELEMENT* element) {
 DPAddress* DPAddress::add (GUID type, void* data, DWORD dataSize) {
   auto element = new DPCOMPOUNDADDRESSELEMENT;
   element->guidDataType = type;
+  // TODO copy this data? or nah?
   element->lpData = data;
   element->dwDataSize = dataSize;
 
   return this->add(element);
+}
+
+pair<void*, DWORD> DPAddress::get (GUID type) {
+  for (auto element : this->elements) {
+    if (IsEqualGUID(element->guidDataType, type)) {
+      return { element->lpData, element->dwDataSize };
+    }
+  }
+  throw std::out_of_range("Address element not found.");
 }
 
 size_t DPAddress::size () {
