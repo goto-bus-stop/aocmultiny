@@ -21,7 +21,7 @@ string to_string (GUID guid) {
   int l = wcslen(chars);
   string str;
   for (int i = 0; i < l; i++) {
-    str.push_back(chars[i]);
+    str.push_back(static_cast<char>(chars[i]));
   }
   free(chars);
   return str;
