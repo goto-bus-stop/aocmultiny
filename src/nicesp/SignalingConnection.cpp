@@ -88,7 +88,42 @@ void SignalingConnection::receive (string message) {
     if (onSdp) {
       onSdp(remoteId, remoteSdp.c_str());
     }
+  } else if (message.substr(0, 5) == "enums") {
+    auto id = stoi(message.substr(6));
+    auto onEnumSessions = this->onEnumSessions;
+    if (onEnumSessions) {
+      onEnumSessions(id);
+    }
+  } else if (message.substr(0, 5) == "enumr") {
+    auto relayed64 = message.substr(6);
+    g_message("enumr : %s %d", relayed64.c_str(), relayed64.size());
+    auto onEnumSessionsResponse = this->onEnumSessionsResponse;
+    if (onEnumSessionsResponse) {
+      gsize size = 0;
+      auto relayedMessage = g_base64_decode(relayed64.c_str(), &size);
+      g_message("enumr size : %d", size);
+      onEnumSessionsResponse(relayedMessage, size);
+    }
   }
+}
+
+void SignalingConnection::relayEnumSessions (GUID sessionGuid) {
+  auto relayString = g_strdup_printf(
+    "enums %s",
+    to_string(sessionGuid).c_str()
+  );
+  this->send(relayString);
+  g_free(relayString);
+}
+
+void SignalingConnection::relayEnumSessionsResponse (int messageId, void* data, gsize size) {
+  auto replyString = g_strdup_printf(
+    "enumr id:%d,reply:%s",
+    messageId,
+    g_base64_encode((const guchar*) data, size)
+  );
+  this->send(replyString);
+  g_free(replyString);
 }
 
 void SignalingConnection::connect (GUID sessionGuid, DPID playerId) {

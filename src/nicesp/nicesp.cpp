@@ -47,6 +47,8 @@ GUID getSessionGuid () {
   return guid;
 }
 
+static SignalingConnection* enumSessionsSC;
+
 static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
   g_message(
     "EnumSessions (%p,%ld,%p,%u) stub",
@@ -54,8 +56,27 @@ static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
     data->lpISP, data->bReturnStatus
   );
 
-  return DPERR_UNSUPPORTED;
+  auto provider = data->lpISP;
+  auto guid = getSessionGuid();
+  g_message("[EnumSessions] guidInstance = %s", to_string(guid).c_str());
+
+  if (!enumSessionsSC) {
+    enumSessionsSC = new SignalingConnection(
+      DEFAULT_SIGNALING_HOST, DEFAULT_SIGNALING_PORT);
+    enumSessionsSC->onEnumSessionsResponse = [provider] (auto data, auto size) {
+      g_message("[EnumSessions] Discovered session %d", size);
+      provider->HandleMessage(data, size, NULL);
+    };
+  }
+  enumSessionsSC->relayEnumSessions(getSessionGuid());
+
+  return DP_OK;
 }
+
+// FIXME This is used to tell the signaling server which EnumSessions message we
+// are attempting to reply to. Pretty hacky, perhaps store this "reply-to
+// number" in the message header for Name Server messages instead?
+static int currentEnumSessionsMessageId = 0;
 
 static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
   g_message(
@@ -63,6 +84,20 @@ static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
     data->lpSPMessageHeader, data->lpMessage, data->dwMessageSize,
     data->idNameServer, data->lpISP
   );
+
+  auto session = getGameSession(data->lpISP);
+  // LOL. Careful! Assuming here that this is indeed an enumsessions reply message.
+  // FIXME Really actually only reply to enumsessions messages here. Perhaps by
+  // parsing the message envelope to check.
+  if (currentEnumSessionsMessageId != 0) {
+    session->getSignalingConnection()->relayEnumSessionsResponse(
+      currentEnumSessionsMessageId,
+      data->lpMessage,
+      data->dwMessageSize
+    );
+    currentEnumSessionsMessageId = 0;
+  }
+
   return DPERR_UNSUPPORTED;
 }
 
@@ -156,6 +191,18 @@ static void* startThread (void*) {
   return nullptr;
 }
 
+// TODO include the header file that has this stuff and use that instead.
+struct DPSP_MSG_ENUMSESSIONS {
+  struct {
+    DWORD magic;
+    WORD commandId;
+    WORD version;
+  } envelope;
+  GUID applicationGuid;
+  DWORD passwordOffset;
+  DWORD flags;
+};
+
 static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   g_message(
     "Open (%u,%p,%p,%u,0x%08lx,0x%08lx)",
@@ -164,6 +211,11 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   );
 
   g_thread_new("main loop", &startThread, NULL);
+
+  if (enumSessionsSC) {
+    delete enumSessionsSC;
+    enumSessionsSC = NULL;
+  }
 
   g_message("new session");
   auto host = DEFAULT_SIGNALING_HOST;
@@ -175,6 +227,21 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   auto sessionRef = &session;
   auto provider = data->lpISP;
   provider->SetSPData(&sessionRef, sizeof(sessionRef), DPSET_LOCAL);
+
+  connection->onEnumSessions = [provider] (auto id) {
+    g_message("onEnumSessions %d", id);
+    // The signaling server asked us to send info about local sessions, so
+    // create a fake ENUMSESSIONS message for DirectPlay
+    auto message = new DPSP_MSG_ENUMSESSIONS;
+    message->envelope.magic = 0x79616c70;
+    message->envelope.commandId = 0x02;
+    message->envelope.version = 0x0b;
+    message->flags = 0;
+    message->passwordOffset = 0;
+    message->applicationGuid = getDPLConnection()->lpSessionDesc->guidApplication;
+    currentEnumSessionsMessageId = id;
+    provider->HandleMessage(message, sizeof(*message), NULL);
+  };
 
   // FIXME Hack. Used to work around about SPData stuff^
   _session = session;

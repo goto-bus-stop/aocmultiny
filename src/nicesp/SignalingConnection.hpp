@@ -31,9 +31,13 @@ public:
   gchar* tryRead ();
   void receive (string message);
 
+  void relayEnumSessions (GUID sessionGuid);
+  void relayEnumSessionsResponse (int messageId, void* data, gsize size);
   void connect (GUID sessionGuid, DPID playerId);
   void sendSdp (DPID targetId, gchar* sdp);
 
+  function<void(int)> onEnumSessions;
+  function<void(void*, gsize)> onEnumSessionsResponse;
   function<void(DPID)> onNewPlayer;
   function<void(DPID, const gchar*)> onSdp;
 
