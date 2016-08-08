@@ -17,6 +17,7 @@ public:
   void alloc ();
   DPNAME* unwrap ();
 
+  static DPName* parse (DPNAME* raw);
 };
 
 }

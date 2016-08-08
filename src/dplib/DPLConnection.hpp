@@ -18,6 +18,8 @@ public:
   ~DPLConnection ();
   void alloc ();
   DPLCONNECTION* unwrap ();
+
+  static DPLConnection* parse (DPLCONNECTION* raw);
 };
 
 }

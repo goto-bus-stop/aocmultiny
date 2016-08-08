@@ -33,4 +33,8 @@ DPName::~DPName () {
   delete this->dpName;
 }
 
+DPName* DPName::parse (DPNAME* raw) {
+  return new DPName(raw->lpszLongNameA);
+}
+
 }

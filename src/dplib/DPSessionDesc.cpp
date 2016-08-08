@@ -55,4 +55,14 @@ DPSessionDesc::~DPSessionDesc () {
   delete this->dpSessionDesc;
 }
 
+DPSessionDesc* DPSessionDesc::parse (DPSESSIONDESC2* raw, bool isHost) {
+  return new DPSessionDesc(
+    raw->guidApplication,
+    raw->guidInstance,
+    raw->lpszSessionNameA != NULL ? raw->lpszSessionNameA : "",
+    raw->lpszPasswordA != NULL ? raw->lpszPasswordA : "",
+    isHost
+  );
+}
+
 }

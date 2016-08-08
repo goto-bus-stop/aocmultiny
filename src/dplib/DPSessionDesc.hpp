@@ -20,6 +20,8 @@ public:
 
   void alloc ();
   DPSESSIONDESC2* unwrap ();
+
+  static DPSessionDesc* parse (DPSESSIONDESC2* raw, bool isHost);
 };
 
 }

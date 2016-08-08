@@ -51,4 +51,12 @@ DPLConnection::~DPLConnection () {
   }
 }
 
+DPLConnection* DPLConnection::parse (DPLCONNECTION* raw) {
+  auto isHost = raw->dwFlags & DPLCONNECTION_CREATESESSION;
+  auto address = DPAddress::parse(raw->lpAddress, raw->dwAddressSize);
+  auto sessionDesc = DPSessionDesc::parse(raw->lpSessionDesc, isHost);
+  auto playerName = DPName::parse(raw->lpPlayerName);
+  return new DPLConnection(address, sessionDesc, playerName);
+}
+
 }
