@@ -73,6 +73,22 @@ IDirectPlayLobby3A* DPLobby::getInternalLobby () {
   return this->dpLobby;
 }
 
+DPLConnection* DPLobby::getConnectionSettings (DWORD appId) {
+  DWORD size;
+  this->dpLobby->GetConnectionSettings(appId, NULL, &size);
+  auto data = new BYTE[size];
+  auto hr = this->dpLobby->GetConnectionSettings(appId, data, &size);
+  if (FAILED(hr)) {
+    return NULL;
+  }
+  auto dpConnection = reinterpret_cast<DPLCONNECTION*>(data);
+  return DPLConnection::parse(dpConnection);
+}
+
+HRESULT DPLobby::setConnectionSettings (DWORD appId, DPLConnection* connection) {
+  return this->dpLobby->SetConnectionSettings(0, appId, connection->unwrap());
+}
+
 DPLobbyMessage* DPLobby::receiveLobbyMessage (DWORD appId) {
   DWORD messageFlags;
   DWORD dataSize = 0;

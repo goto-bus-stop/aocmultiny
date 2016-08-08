@@ -46,6 +46,9 @@ public:
 
   IDirectPlayLobby3A* getInternalLobby ();
 
+  DPLConnection* getConnectionSettings (DWORD appId = 0);
+  HRESULT setConnectionSettings (DWORD appId, DPLConnection* connection);
+
   DPSession* createSession (DPGame* game);
   DPSession* hostSession (DPGame* game);
   DPSession* hostSession (DPGame* game, DPAddress* address);
