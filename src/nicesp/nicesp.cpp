@@ -181,9 +181,9 @@ static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
 static void* startThread (void*) {
   CoInitialize(NULL);
 
-  g_message("loop start");
+  g_message("[GMainLoop::startThread] loop start");
   g_main_loop_run(gloop);
-  g_message("loop complete");
+  g_message("[GMainLoop::startThread] loop complete");
   g_main_loop_unref(gloop);
 
   CoUninitialize();
@@ -342,9 +342,9 @@ static void setup_callbacks (DPSP_SPCALLBACKS* callbacks) {
 static HRESULT init (SPINITDATA* spData) {
   g_message("SPInit");
 
-  g_message("Initializing library for %ls (%ls)", to_string(*spData->lpGuid).c_str(), spData->lpszName);
+  g_message("[SPInit] Initializing library for %s (%ls)", to_string(*spData->lpGuid).c_str(), spData->lpszName);
 
-  /* We only support NICE service */
+  // We only support NICE service
   if (!IsEqualGUID(*spData->lpGuid, DPSPGUID_NICE)) {
     return DPERR_UNAVAILABLE;
   }
@@ -352,7 +352,7 @@ static HRESULT init (SPINITDATA* spData) {
   /* Assign callback functions */
   setup_callbacks(spData->lpCB);
 
-  g_message("Have callbacks");
+  g_message("[SPInit] Have callbacks");
 
   gloop = g_main_loop_new(NULL, FALSE);
 

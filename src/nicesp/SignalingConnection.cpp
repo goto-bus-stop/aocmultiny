@@ -12,16 +12,16 @@ namespace nicesp {
 static void* signalThread (void* data) {
   auto connection = reinterpret_cast<SignalingConnection*>(data);
   gchar* line = nullptr;
-  g_message("New SignalThread");
-  g_message("waiting ...");
+  g_message("[SignalingConnection::signalThread] New SignalThread");
+  g_message("[SignalingConnection::signalThread] waiting ...");
   // Very crude please don't hurt me
   while (connection->runThread && (line = connection->tryRead()) != NULL) {
     string sline = line;
-    g_message("got line %s", sline.c_str());
+    g_message("[SignalingConnection::signalThread] got line %s", sline.c_str());
     connection->receive(sline);
-    g_message("waiting ... %d", connection->runThread);
+    g_message("[SignalingConnection::signalThread] waiting ... %d", connection->runThread);
   }
-  g_message("endthread");
+  g_message("[SignalingConnection::signalThread] endthread");
   g_thread_exit(NULL);
   return nullptr;
 }
@@ -55,7 +55,7 @@ SignalingConnection::~SignalingConnection () {
 }
 
 void SignalingConnection::send (gchar* message) {
-  g_message("Send \"%s\"", message);
+  g_message("[SignalingConnection::send] Send \"%s\"", message);
   g_output_stream_write(this->sendStream, message, strlen(message), NULL, NULL);
   g_output_stream_write(this->sendStream, "\n", 1, NULL, NULL);
   g_output_stream_flush(this->sendStream, NULL, NULL);
@@ -66,15 +66,16 @@ gchar* SignalingConnection::tryRead () {
   this->readCancellable = g_cancellable_new();
   auto result = g_data_input_stream_read_line(this->receiveStream, size, this->readCancellable, NULL);
   g_object_unref(this->readCancellable);
-  g_message("Receive \"%s\"", result);
+  g_message("[SignalingConnection::tryRead] Receive \"%s\"", result);
   this->readCancellable = NULL;
   return result;
 }
 
 void SignalingConnection::receive (string message) {
+  g_message("[SignalingConnection::receive] %s", message.c_str());
   if (message.substr(0, 6) == "player") {
     auto idStr = stoi(message.substr(10));
-    g_message("new player %d", idStr);
+    g_message("[SignalingConnection::receive] new player %d", idStr);
     auto onNewPlayer = this->onNewPlayer;
     if (onNewPlayer) {
       onNewPlayer(idStr);
@@ -96,12 +97,12 @@ void SignalingConnection::receive (string message) {
     }
   } else if (message.substr(0, 5) == "enumr") {
     auto relayed64 = message.substr(6);
-    g_message("enumr : %s %d", relayed64.c_str(), relayed64.size());
+    g_message("[SignalingConnection::receive] enumr : %s %d", relayed64.c_str(), relayed64.size());
     auto onEnumSessionsResponse = this->onEnumSessionsResponse;
     if (onEnumSessionsResponse) {
       gsize size = 0;
       auto relayedMessage = g_base64_decode(relayed64.c_str(), &size);
-      g_message("enumr size : %d", size);
+      g_message("[SignalingConnection::receive] enumr size : %d", size);
       onEnumSessionsResponse(relayedMessage, size);
     }
   }
