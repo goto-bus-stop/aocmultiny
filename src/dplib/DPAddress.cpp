@@ -21,7 +21,7 @@ DPAddress::DPAddress ()
 DPAddress::DPAddress (GUID serviceProvider)
     :
     DPAddress() {
-  this->add(DPAID_ServiceProvider, &serviceProvider, sizeof(serviceProvider));
+  this->add(DPAID_ServiceProvider, serviceProvider);
 }
 
 DPAddress* DPAddress::add (DPCOMPOUNDADDRESSELEMENT* element) {
@@ -30,14 +30,19 @@ DPAddress* DPAddress::add (DPCOMPOUNDADDRESSELEMENT* element) {
   return this;
 }
 
-DPAddress* DPAddress::add (GUID type, void* data, DWORD dataSize) {
+DPAddress* DPAddress::add (GUID type, const void* data, DWORD dataSize) {
   auto element = new DPCOMPOUNDADDRESSELEMENT;
   element->guidDataType = type;
-  // TODO copy this data? or nah?
-  element->lpData = data;
+  element->lpData = new BYTE[dataSize];
+  memcpy(element->lpData, data, dataSize);
   element->dwDataSize = dataSize;
 
   return this->add(element);
+}
+
+template<typename Value>
+DPAddress* DPAddress::add (GUID type, Value value) {
+  return this->add(type, &value, sizeof(Value));
 }
 
 pair<void*, DWORD> DPAddress::get (GUID type) {
@@ -94,10 +99,7 @@ DPAddress::~DPAddress () {
 DPAddress* DPAddress::ip (string ip) {
   auto address = new DPAddress(DPSPGUID_TCPIP);
 
-  auto size = ip.size();
-  void* ipStr = new char[size];
-  memcpy(ipStr, ip.c_str(), size);
-  address->add(DPAID_INet, ipStr, size);
+  address->add(DPAID_INet, ip.c_str(), ip.size());
 
   return address;
 }
@@ -105,9 +107,7 @@ DPAddress* DPAddress::ip (string ip) {
 BOOL FAR PASCAL parseDPAddressCallback (REFGUID type, DWORD size, const void* data, void* ctx) {
   auto address = static_cast<DPAddress*>(ctx);
 
-  auto copy = new BYTE[size];
-  memcpy(copy, data, size);
-  address->add(type, copy, size);
+  address->add(type, data, size);
 
   return TRUE;
 }

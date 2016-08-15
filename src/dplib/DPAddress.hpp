@@ -22,7 +22,10 @@ public:
   ~DPAddress ();
 
   DPAddress* add (DPCOMPOUNDADDRESSELEMENT* element);
-  DPAddress* add (GUID type, void* data, DWORD dataSize);
+  DPAddress* add (GUID type, const void* data, DWORD dataSize);
+  template<typename Value>
+  DPAddress* add (GUID type, Value value);
+
   pair<void*, DWORD> get (GUID type);
 
   size_t size ();
