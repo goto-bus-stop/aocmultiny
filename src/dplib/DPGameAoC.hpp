@@ -18,6 +18,8 @@ struct DPGameAoCPresetData {
 
   union {
     char gameFilename[260];
+    // UserPatch has a slightly different preset data format:
+    // http://aoczone.net/viewtopic.php?f=68&t=97719&p=321800#p321800
     struct {
       char upGameFilename[240];
       DWORD specIps[4];
