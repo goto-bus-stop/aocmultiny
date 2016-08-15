@@ -65,8 +65,8 @@ GameSession* Player::getSession () {
 GameSession::GameSession (SignalingConnection* signaling, bool isHost)
     :
     players(vector<Player*>()),
-    isHost(isHost),
-    signaling(signaling) {
+    signaling(signaling),
+    isHost(isHost) {
   signaling->onNewPlayer = [this] (auto id) {
     this->processNewPlayer(id);
   };

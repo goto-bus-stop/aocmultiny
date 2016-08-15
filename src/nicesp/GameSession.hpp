@@ -27,12 +27,12 @@ public:
 class GameSession {
 private:
   vector<Player*> players;
-  bool isHost;
   SignalingConnection* signaling;
 public:
-
   GameSession (SignalingConnection* signaling, bool isHost);
   ~GameSession ();
+
+  bool isHost;
 
   NiceAgent* getPlayerAgent (DPID id);
   SignalingConnection* getSignalingConnection ();

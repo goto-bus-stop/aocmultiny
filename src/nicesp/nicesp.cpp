@@ -12,17 +12,13 @@ const gchar* DEFAULT_SIGNALING_HOST = "localhost";
 const guint DEFAULT_SIGNALING_PORT = 7788;
 
 GMainLoop* gloop;
-GameSession* _session;
 IDirectPlayLobby3A* _lobby;
 
 static GameSession* getGameSession (IDirectPlaySP* provider) {
-  return _session;
-#if 0
-  void* session;
-  DWORD size = sizeof(session);
+  DWORD size = sizeof(GameSession);
+  void* session = new BYTE[size];
   provider->GetSPData(&session, &size, DPGET_LOCAL);
   return static_cast<GameSession*>(session);
-#endif
 }
 
 /**
@@ -217,12 +213,13 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
     enumSessionsSC = NULL;
   }
 
-  g_message("new session");
+  auto isHost = !!data->bCreate;
+
+  g_message("[Open] new session");
   auto host = DEFAULT_SIGNALING_HOST;
   auto port = DEFAULT_SIGNALING_PORT;
-  // TODO store in DirectPlay SPData (the pointers got weird when I tried this)
   auto connection = new SignalingConnection(host, port);
-  auto session = new GameSession(connection, !!data->bCreate);
+  auto session = new GameSession(connection, isHost);
 
   auto sessionRef = &session;
   auto provider = data->lpISP;
@@ -242,9 +239,6 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
     currentEnumSessionsMessageId = id;
     provider->HandleMessage(message, sizeof(*message), NULL);
   };
-
-  // FIXME Hack. Used to work around about SPData stuff^
-  _session = session;
 
   return DP_OK;
 }
