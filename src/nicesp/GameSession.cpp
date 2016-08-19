@@ -46,7 +46,7 @@ Player::Player (GameSession* session, DPID id)
     id(id),
     agent(new NiceAgent(g_main_loop_get_context(gloop))) {
   // Set the STUN settings and controlling mode
-  g_object_set(this->agent->unwrap(), "stun-server", "stun.l.google.com", NULL);
+  g_object_set(this->agent->unwrap(), "stun-server", "74.125.136.127", NULL);
   g_object_set(this->agent->unwrap(), "stun-server-port", 19302, NULL);
 
   // Connect to the signals
