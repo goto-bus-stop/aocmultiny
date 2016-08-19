@@ -71,9 +71,15 @@ class DPGameAoC: public DPGame {
 public:
   DPGameAoCPresetData* preset;
 
+  /**
+   * Create a new Age of Empires 2 DPGame.
+   */
   DPGameAoC ();
   ~DPGameAoC ();
 
+  /**
+   * @inherit
+   */
   void receiveMessage (DPLobbyMessage* message);
 };
 
