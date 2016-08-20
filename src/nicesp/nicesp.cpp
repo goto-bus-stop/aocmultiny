@@ -187,18 +187,6 @@ static void* startThread (void*) {
   return nullptr;
 }
 
-// TODO include the header file that has this stuff and use that instead.
-struct DPSP_MSG_ENUMSESSIONS {
-  struct {
-    DWORD magic;
-    WORD commandId;
-    WORD version;
-  } envelope;
-  GUID applicationGuid;
-  DWORD passwordOffset;
-  DWORD flags;
-};
-
 static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   g_message(
     "Open (%u,%p,%p,%u,0x%08lx,0x%08lx)",
@@ -226,13 +214,10 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   provider->SetSPData(&sessionRef, sizeof(sessionRef), DPSET_LOCAL);
 
   connection->onEnumSessions = [provider] (auto id) {
-    g_message("onEnumSessions %d", id);
+    g_message("[Open] onEnumSessions %d", id);
     // The signaling server asked us to send info about local sessions, so
     // create a fake ENUMSESSIONS message for DirectPlay
     auto message = new DPSP_MSG_ENUMSESSIONS;
-    message->envelope.magic = 0x79616c70;
-    message->envelope.commandId = 0x02;
-    message->envelope.version = 0x0b;
     message->flags = 0;
     message->passwordOffset = 0;
     message->applicationGuid = getDPLConnection()->lpSessionDesc->guidApplication;
