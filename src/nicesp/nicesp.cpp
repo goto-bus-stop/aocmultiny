@@ -292,7 +292,7 @@ static HRESULT WINAPI DPNice_GetMessageQueue (DPSP_GETMESSAGEQUEUEDATA* data) {
   return DPERR_UNSUPPORTED;
 }
 
-static void setup_callbacks (DPSP_SPCALLBACKS* callbacks) {
+static void setupCallbacks (DPSP_SPCALLBACKS* callbacks) {
   callbacks->EnumSessions = DPNice_EnumSessions;
   callbacks->Reply = DPNice_Reply;
   callbacks->Send = DPNice_Send;
@@ -328,8 +328,7 @@ static HRESULT init (SPINITDATA* spData) {
     return DPERR_UNAVAILABLE;
   }
 
-  /* Assign callback functions */
-  setup_callbacks(spData->lpCB);
+  setupCallbacks(spData->lpCB);
 
   g_message("[SPInit] Have callbacks");
 
