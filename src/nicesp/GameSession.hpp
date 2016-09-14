@@ -28,6 +28,7 @@ class GameSession {
 private:
   vector<Player*> players;
   SignalingConnection* signaling;
+  HANDLE remoteSdpEvent = NULL;
 public:
   GameSession (SignalingConnection* signaling, bool isHost);
   ~GameSession ();
@@ -40,7 +41,12 @@ public:
   void processNewPlayer (DPID id);
   void deletePlayer (DPID id);
   void processSdp (DPID id, const gchar* sdp);
+  void processReady (DPID remote);
   Player* getPlayerById (DPID id);
+
+  void waitUntilConnectedWithHost ();
+
+  function<void(void*, gsize)> onMessage;
 };
 
 }

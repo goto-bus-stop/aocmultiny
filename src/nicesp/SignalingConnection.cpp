@@ -73,12 +73,13 @@ gchar* SignalingConnection::tryRead () {
 
 void SignalingConnection::receive (string message) {
   g_message("[SignalingConnection::receive] %s", message.c_str());
-  if (message.substr(0, 6) == "player") {
-    auto idStr = stoi(message.substr(10));
-    g_message("[SignalingConnection::receive] new player %d", idStr);
+  if (message.substr(0, 4) == "join") {
+    g_message("[SignalingConnection::receive] new player str %s", message.substr(5).c_str());
+    auto id = stoi(message.substr(5));
+    g_message("[SignalingConnection::receive] new player %d", id);
     auto onNewPlayer = this->onNewPlayer;
     if (onNewPlayer) {
-      onNewPlayer(idStr);
+      onNewPlayer(id);
     }
   } else if (message.substr(0, 3) == "sdp") {
     auto parts = message.substr(11);
@@ -127,11 +128,10 @@ void SignalingConnection::relayEnumSessionsResponse (int messageId, void* data, 
   g_free(replyString);
 }
 
-void SignalingConnection::connect (GUID sessionGuid, DPID playerId) {
+void SignalingConnection::connect (GUID sessionGuid, bool isHost) {
   auto authString = g_strdup_printf(
-    "create session:%s,id:%d",
-    to_string(sessionGuid).c_str(),
-    static_cast<int>(playerId)
+    isHost ? "host %s" : "join %s",
+    to_string(sessionGuid).c_str()
   );
   this->send(authString);
   g_free(authString);

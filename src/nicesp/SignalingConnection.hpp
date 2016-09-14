@@ -33,13 +33,13 @@ public:
 
   void relayEnumSessions (GUID sessionGuid);
   void relayEnumSessionsResponse (int messageId, void* data, gsize size);
-  void connect (GUID sessionGuid, DPID playerId);
+  void connect (GUID sessionGuid, bool isHost);
   void sendSdp (DPID targetId, gchar* sdp);
 
   function<void(int)> onEnumSessions;
   function<void(void*, gsize)> onEnumSessionsResponse;
-  function<void(DPID)> onNewPlayer;
-  function<void(DPID, const gchar*)> onSdp;
+  function<void(int)> onNewPlayer;
+  function<void(int, const gchar*)> onSdp;
 
   bool runThread;
   void start ();

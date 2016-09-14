@@ -2,11 +2,16 @@
 #include "nicesp.hpp"
 #include "../util.hpp"
 #include <gio/gnetworking.h>
+#include <ctime>
+#include <iostream>
 #include <string>
 
 using namespace std;
 
 namespace nicesp {
+
+#define TEST_HOSTID 1
+#define TEST_JOINID 3
 
 const gchar* DEFAULT_SIGNALING_HOST = "localhost";
 const guint DEFAULT_SIGNALING_PORT = 7788;
@@ -86,12 +91,14 @@ static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
   // FIXME Really actually only reply to enumsessions messages here. Perhaps by
   // parsing the message envelope to check.
   if (currentEnumSessionsMessageId != 0) {
+    g_message("[DPNice_Reply] SignalingConnection (%p)", session->getSignalingConnection());
     session->getSignalingConnection()->relayEnumSessionsResponse(
       currentEnumSessionsMessageId,
       data->lpMessage,
       data->dwMessageSize
     );
     currentEnumSessionsMessageId = 0;
+    return DP_OK;
   }
 
   return DPERR_UNSUPPORTED;
@@ -107,7 +114,13 @@ static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
 
   auto session = getGameSession(data->lpISP);
 
-  auto player = session->getPlayerById(data->idPlayerTo);
+  auto target = data->idPlayerTo;
+  if (target == DPID_ALLPLAYERS) {
+    target = TEST_HOSTID;
+  } else {
+    target = TEST_JOINID;
+  }
+  auto player = session->getPlayerById(target);
   auto stream = player->agent->getStream(1);
 
   stream->send(1, data->dwMessageSize, static_cast<gchar*>(data->lpMessage));
@@ -124,10 +137,10 @@ static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
 
   auto session = getGameSession(data->lpISP);
 
-  if (data->dwFlags & (DPLAYI_PLAYER_PLAYERLOCAL | DPLAYI_PLAYER_NAMESRVR)) {
+  if (data->dwFlags == DPLAYI_PLAYER_PLAYERLOCAL && data->dwFlags & DPLAYI_PLAYER_NAMESRVR) {
     // Creating our local player, register with the signaling server.
-    session->getSignalingConnection()
-      ->connect(getSessionGuid(), data->idPlayer);
+    // session->getSignalingConnection()
+    //   ->authenticate(data->idPlayer);
   }
 
   return DP_OK;
@@ -161,7 +174,7 @@ static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
     data->idPlayer, data->lpCaps, data->dwFlags, data->lpISP
   );
 
-  data->lpCaps->dwFlags = DPCAPS_ASYNCSUPPORTED;
+  data->lpCaps->dwFlags = 0;
   data->lpCaps->dwMaxBufferSize = 1024;
   data->lpCaps->dwMaxQueueSize = 0;
   data->lpCaps->dwMaxPlayers = 65536;
@@ -208,22 +221,37 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   auto port = DEFAULT_SIGNALING_PORT;
   auto connection = new SignalingConnection(host, port);
   auto session = new GameSession(connection, isHost);
+  _session=session;
 
   auto sessionRef = &session;
   auto provider = data->lpISP;
   provider->SetSPData(&sessionRef, sizeof(sessionRef), DPSET_LOCAL);
 
-  connection->onEnumSessions = [provider] (auto id) {
-    g_message("[Open] onEnumSessions %d", id);
-    // The signaling server asked us to send info about local sessions, so
-    // create a fake ENUMSESSIONS message for DirectPlay
-    auto message = new DPSP_MSG_ENUMSESSIONS;
-    message->flags = 0;
-    message->passwordOffset = 0;
-    message->applicationGuid = getDPLConnection()->lpSessionDesc->guidApplication;
-    currentEnumSessionsMessageId = id;
-    provider->HandleMessage(message, sizeof(*message), NULL);
+  // Register immediately, with fake IDs for now.
+  // TODO Initially connect with zeroed IDs, then update them in CreatePlayer.
+  connection->connect(getSessionGuid(), isHost);
+
+  session->onMessage = [provider] (auto data, auto size) {
+    g_message("[Receive] Receiving message %d", size);
+    provider->HandleMessage(data, size, NULL);
   };
+
+  if (isHost) {
+    connection->onEnumSessions = [provider] (auto id) {
+      g_message("[Open] onEnumSessions %d", id);
+      // The signaling server asked us to send info about local sessions, so
+      // create a fake ENUMSESSIONS message for DirectPlay
+      auto message = new DPSP_MSG_ENUMSESSIONS;
+      message->flags = 0;
+      message->passwordOffset = 0;
+      message->applicationGuid = getDPLConnection()->lpSessionDesc->guidApplication;
+      currentEnumSessionsMessageId = id;
+      provider->HandleMessage(message, sizeof(*message), NULL);
+    };
+  } else {
+    session->waitUntilConnectedWithHost();
+    g_message("[Open] Connected w/Host");
+  }
 
   return DP_OK;
 }

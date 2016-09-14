@@ -26,7 +26,8 @@ static void onNiceStateChange (
   auto player = reinterpret_cast<Player*>(data);
   if (state == NICE_COMPONENT_STATE_READY) {
     g_message("[onNiceStateChange] Ready %d\n", static_cast<int>(player->id));
-    player->agent->send(streamId, componentId, 3, "hoi");
+    // player->agent->send(streamId, componentId, 3, "hoi");
+    player->getSession()->processReady(player->id);
   }
 }
 
@@ -37,7 +38,9 @@ static void onReceiveNicePacket (
   gpointer data
 ) {
   auto player = reinterpret_cast<Player*>(data);
-  g_message("[onReceiveNicePacket] received %s from %d\n", buf, player->id);
+  g_message("[onReceiveNicePacket] received %d [%s] from %d\n", len, buf, player->id);
+  auto onMessage = player->getSession()->onMessage;
+  onMessage(buf, len);
 }
 
 Player::Player (GameSession* session, DPID id)
@@ -92,6 +95,7 @@ void GameSession::processNewPlayer (DPID id) {
   g_object_set(player->agent->unwrap(), "controlling-mode", this->isHost ? 1 : 0, NULL);
 
   auto stream = player->agent->addStream(1);
+  stream->setName("application");
   stream->attachRecv(1, g_main_loop_get_context(gloop), onReceiveNicePacket, player);
 
   this->players.push_back(player);
@@ -113,8 +117,24 @@ void GameSession::deletePlayer (DPID id) {
 void GameSession::processSdp (DPID id, const gchar* sdp) {
   gsize sdpLen;
   auto rawSdp = reinterpret_cast<gchar*>(g_base64_decode(sdp, &sdpLen));
-  auto player = this->getPlayerById(id);
-  player->agent->parseRemoteSdp(rawSdp);
+  auto agent = this->getPlayerAgent(id);
+  agent->parseRemoteSdp(rawSdp);
+}
+
+void GameSession::processReady (DPID remote) {
+  if (!this->isHost) {
+    if (this->remoteSdpEvent) {
+      SetEvent(this->remoteSdpEvent);
+    }
+  }
+}
+
+void GameSession::waitUntilConnectedWithHost () {
+  if (!this->isHost) {
+    this->remoteSdpEvent = CreateEvent(NULL, false, false, NULL);
+    WaitForSingleObject(this->remoteSdpEvent, 30000);
+    this->remoteSdpEvent = NULL;
+  }
 }
 
 Player* GameSession::getPlayerById (DPID id) {
