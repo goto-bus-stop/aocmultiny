@@ -46,8 +46,7 @@ On Windowses with Visual Studio:
  2. Download the last [DirectX SDK with DirectPlay (August 2007)].
  3. Configure environment variables:
     - `WXWIN=` path to your wxWidgets build base directory.
-    - `AOCMULTINY_DPLAY_SDK=` path to where you installed the DirectX SDK.
- 4. Import the AoCMultiny.vcxproj project file.
+ 4. Import the AoCMultiny.sln solution file.
 
 ## Credits/References
 

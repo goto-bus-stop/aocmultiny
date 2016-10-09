@@ -11,70 +11,67 @@
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\aocmultiny\gui\App.hpp">
+    <ClInclude Include="src\dplib\DPAddress.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\aocmultiny\gui\Chat.hpp">
+    <ClInclude Include="src\dplib\DPGame.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\aocmultiny\gui\MainFrame.hpp">
+    <ClInclude Include="src\dplib\DPGameAoC.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\aocmultiny\gui\RoomFrame.hpp">
+    <ClInclude Include="src\dplib\DPLConnection.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\aocmultiny\gui\RoomList.hpp">
+    <ClInclude Include="src\dplib\DPLobby.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\aocmultiny\cli\CLI.hpp">
+    <ClInclude Include="src\dplib\DPName.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\aocmultiny\irc\Channel.hpp">
+    <ClInclude Include="src\dplib\DPSession.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\aocmultiny\irc\IRC.hpp">
+    <ClInclude Include="src\dplib\DPSessionDesc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\aocmultiny\main.hpp">
+    <ClInclude Include="src\dplib\main.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\util.hpp">
+    <ClInclude Include="src\dplib\util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\aocmultiny\main.cpp">
+    <ClCompile Include="src\dplib\DPAddress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\aocmultiny\cli\CLI.cpp">
+    <ClCompile Include="src\dplib\DPGame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\aocmultiny\gui\App.cpp">
+    <ClCompile Include="src\dplib\DPGameAoC.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\aocmultiny\gui\Chat.cpp">
+    <ClCompile Include="src\dplib\DPLConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\aocmultiny\gui\MainFrame.cpp">
+    <ClCompile Include="src\dplib\DPLobby.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\aocmultiny\gui\RoomFrame.cpp">
+    <ClCompile Include="src\dplib\DPName.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\aocmultiny\gui\RoomList.cpp">
+    <ClCompile Include="src\dplib\DPSession.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\aocmultiny\irc\Channel.cpp">
+    <ClCompile Include="src\dplib\DPSessionDesc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\aocmultiny\irc\IRC.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\util.cpp">
+    <ClCompile Include="src\dplib\util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
