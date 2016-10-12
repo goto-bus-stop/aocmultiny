@@ -14,9 +14,8 @@ DPName::DPName (std::string name)
 void DPName::alloc () {
   this->dpName = new DPNAME;
 
-  auto length = this->name.length();
-  auto nameStr = static_cast<char*>(calloc(length + 1, sizeof(char)));
-  this->name.copy(nameStr, length, 0);
+  auto nameStr = new char[this->name.size() + 1];
+  memcpy(nameStr, this->name.c_str(), this->name.size());
 
   this->dpName->dwSize = sizeof(DPNAME);
   this->dpName->dwFlags = 0;
