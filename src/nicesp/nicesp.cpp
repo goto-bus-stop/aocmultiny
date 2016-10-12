@@ -5,6 +5,8 @@
 #include <ctime>
 #include <iostream>
 #include <string>
+#include <map>
+#include "debug.hpp"
 
 using namespace std;
 
@@ -17,6 +19,7 @@ GMainLoop* gloop;
 IDirectPlayLobby3A* _lobby;
 
 static GameSession* getGameSession (IDirectPlaySP* provider) {
+  g_debug("[getGameSession]");
   DWORD size = sizeof(GameSession);
   void* session = new BYTE[size];
   provider->GetSPData(&session, &size, DPGET_LOCAL);
@@ -28,6 +31,7 @@ static GameSession* getGameSession (IDirectPlaySP* provider) {
  * (Are Service Providers suppposed to access this? Well, it works, so…)
  */
 DPLCONNECTION* getDPLConnection () {
+  g_debug("[getDPLConnection]");
   DWORD size;
   _lobby->GetConnectionSettings(0, NULL, &size);
   auto conndata = malloc(size);
@@ -39,10 +43,10 @@ DPLCONNECTION* getDPLConnection () {
 }
 
 GUID getSessionGuid () {
-  g_message("[getSessionGuid]");
+  g_debug("[getSessionGuid]");
   auto connection = getDPLConnection();
   if (connection == NULL) {
-    g_message("[getSessionGuid] DPLConnection is null");
+    g_critical("[getSessionGuid] DPLConnection is null");
   }
   auto guid = connection->lpSessionDesc->guidInstance;
   free(connection);
@@ -52,21 +56,24 @@ GUID getSessionGuid () {
 static SignalingConnection* enumSessionsSC;
 
 static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
-  g_message(
+  g_debug(
     "EnumSessions (%p,%ld,%p,%u) stub",
     data->lpMessage, data->dwMessageSize,
     data->lpISP, data->bReturnStatus
   );
 
+  cout << data << endl;
+
   auto provider = data->lpISP;
+
   auto guid = getSessionGuid();
-  g_message("[EnumSessions] guidInstance = %s", to_string(guid).c_str());
+  g_debug("[EnumSessions] guidInstance = %s", to_string(guid).c_str());
 
   if (!enumSessionsSC) {
     enumSessionsSC = new SignalingConnection(
       DEFAULT_SIGNALING_HOST, DEFAULT_SIGNALING_PORT);
     enumSessionsSC->onEnumSessionsResponse = [provider] (auto data, auto size) {
-      g_message("[EnumSessions] Discovered session %d", size);
+      g_debug("[EnumSessions] Discovered session %d", size);
       provider->HandleMessage(data, size, 0);
     };
   }
@@ -81,18 +88,21 @@ static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
 static int currentEnumSessionsMessageId = 0;
 
 static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
-  g_message(
+  g_debug(
     "Reply (%p,%p,%ld,%ld,%p) stub",
     data->lpSPMessageHeader, data->lpMessage, data->dwMessageSize,
     data->idNameServer, data->lpISP
   );
 
+  cout << data << endl;
+
   auto session = getGameSession(data->lpISP);
+  g_debug("[DPNice_Reply] currentEnumSessionsMessageId = %d", currentEnumSessionsMessageId);
   // LOL. Careful! Assuming here that this is indeed an enumsessions reply message.
   // FIXME Really actually only reply to enumsessions messages here. Perhaps by
   // parsing the message envelope to check.
   if (currentEnumSessionsMessageId != 0) {
-    g_message("[DPNice_Reply] SignalingConnection (%p)", session->getSignalingConnection());
+    g_debug("[DPNice_Reply] SignalingConnection (%p)", session->getSignalingConnection());
     session->getSignalingConnection()->relayEnumSessionsResponse(
       currentEnumSessionsMessageId,
       data->lpMessage,
@@ -106,7 +116,7 @@ static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
-  g_message(
+  g_debug(
     "Send (0x%08lx,%ld,%ld,%p,%ld,%u,%p)",
     data->dwFlags, data->idPlayerTo, data->idPlayerFrom,
     data->lpMessage, data->dwMessageSize,
@@ -121,19 +131,19 @@ static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
   auto target = data->idPlayerTo;
   Player* player;
   if (target == 0) {
-    g_message("[DPNice_Send] Send to name server");
+    g_debug("[DPNice_Send] Send to name server");
     player = session->getNameServerPlayer();
   } else {
-    g_message("[DPNice_Send] Send to player %ld", target);
+    g_debug("[DPNice_Send] Send to player %ld", target);
     player = session->getPlayerById(target);
   }
 
   if (!player) {
-    g_message("[DPNice_Send] Player not found");
+    g_warning("[DPNice_Send] Player not found");
     return DPERR_UNAVAILABLE;
   }
 
-  g_message("[DPNice_Send] player = %ld", player->id);
+  g_debug("[DPNice_Send] player = %ld", player->id);
 
   player->send(data->dwMessageSize, data->lpMessage);
 
@@ -141,7 +151,7 @@ static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
-  g_message(
+  g_debug(
     "CreatePlayer (%ld,0x%08lx,%p,%p)",
     data->idPlayer, data->dwFlags,
     data->lpSPMessageHeader, data->lpISP
@@ -180,10 +190,12 @@ static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_DeletePlayer (DPSP_DELETEPLAYERDATA* data) {
-  g_message(
+  g_debug(
     "DeletePlayer (%ld,0x%08lx,%p)",
     data->idPlayer, data->dwFlags, data->lpISP
   );
+
+  cout << data << endl;
 
   auto session = getGameSession(data->lpISP);
 
@@ -193,19 +205,24 @@ static HRESULT WINAPI DPNice_DeletePlayer (DPSP_DELETEPLAYERDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_GetAddress (DPSP_GETADDRESSDATA* data) {
-  g_message(
+  g_debug(
     "GetAddress (%ld,0x%08lx,%p,%p,%p) stub",
     data->idPlayer, data->dwFlags, data->lpAddress,
     data->lpdwAddressSize, data->lpISP
   );
+
+  cout << data << endl;
+
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
-  g_message(
+  g_debug(
     "GetCaps (%ld,%p,0x%08lx,%p)",
     data->idPlayer, data->lpCaps, data->dwFlags, data->lpISP
   );
+
+  cout << data << endl;
 
   data->lpCaps->dwFlags = 0;
   data->lpCaps->dwMaxBufferSize = 1024;
@@ -223,9 +240,9 @@ static HRESULT WINAPI DPNice_GetCaps (DPSP_GETCAPSDATA* data) {
 static void* startThread (void*) {
   CoInitialize(NULL);
 
-  g_message("[GMainLoop::startThread] loop start");
+  g_debug("[GMainLoop::startThread] loop start");
   g_main_loop_run(gloop);
-  g_message("[GMainLoop::startThread] loop complete");
+  g_debug("[GMainLoop::startThread] loop complete");
   g_main_loop_unref(gloop);
 
   CoUninitialize();
@@ -234,7 +251,7 @@ static void* startThread (void*) {
 }
 
 static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
-  g_message(
+  g_debug(
     "Open (%u,%p,%p,%u,0x%08lx,0x%08lx)",
     data->bCreate, data->lpSPMessageHeader, data->lpISP,
     data->bReturnStatus, data->dwOpenFlags, data->dwSessionFlags
@@ -252,16 +269,14 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
     enumSessionsSC = NULL;
   }
 
-  auto isHost = !!data->bCreate;
-
-  g_message("[Open] new session");
-  auto host = DEFAULT_SIGNALING_HOST;
-  auto port = DEFAULT_SIGNALING_PORT;
+  g_debug("[Open] new session (provider = %p)", provider);
+  const auto host = DEFAULT_SIGNALING_HOST;
+  const auto port = DEFAULT_SIGNALING_PORT;
   auto connection = new SignalingConnection(host, port);
   auto session = new GameSession(connection, isHost);
 
   auto sessionRef = &session;
-  g_message("[Open] SetSPData");
+  g_debug("[Open] SetSPData");
   provider->SetSPData(&sessionRef, sizeof(sessionRef), DPSET_LOCAL);
 
   // Register immediately, with fake IDs for now.
@@ -274,8 +289,8 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   };
 
   if (isHost) {
-    connection->onEnumSessions = [provider] (auto id) {
-      g_message("[Open] onEnumSessions %d", id);
+    connection->onEnumSessions = [provider] (const auto id) {
+      g_debug("[Open] onEnumSessions %d", id);
       // The signaling server asked us to send info about local sessions, so
       // create a fake ENUMSESSIONS message for DirectPlay
       auto message = new DPSP_MSG_ENUMSESSIONS;
@@ -287,14 +302,16 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
     };
   } else {
     session->waitUntilConnectedWithHost();
-    g_message("[Open] Connected w/Host");
+    g_debug("[Open] Connected w/Host (provider = %p)", provider);
   }
 
   return DP_OK;
 }
 
 static HRESULT WINAPI DPNice_CloseEx (DPSP_CLOSEDATA* data) {
-  g_message("CloseEx (%p) stub", data->lpISP);
+  g_debug("CloseEx (%p) stub", data->lpISP);
+
+  cout << data << endl;
 
   auto session = getGameSession(data->lpISP);
 
@@ -305,55 +322,73 @@ static HRESULT WINAPI DPNice_CloseEx (DPSP_CLOSEDATA* data) {
 }
 
 static HRESULT WINAPI DPNice_ShutdownEx (DPSP_SHUTDOWNDATA* data) {
-  g_message("ShutdownEx (%p) stub", data->lpISP);
+  g_debug("ShutdownEx (%p) stub", data->lpISP);
+
+  cout << data << endl;
+
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_GetAddressChoices (DPSP_GETADDRESSCHOICESDATA* data) {
-  g_message(
+  g_debug(
     "GetAddressChoices (%p,%p,%p) stub",
     data->lpAddress, data->lpdwAddressSize, data->lpISP
   );
+
+  cout << data << endl;
+
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_SendEx (DPSP_SENDEXDATA* data) {
-  g_message(
+  g_debug(
     "SendEx (%p,0x%08lx,%ld,%ld,%p,%ld,%ld,%ld,%ld,%p,%p,%u) stub",
     data->lpISP, data->dwFlags, data->idPlayerTo, data->idPlayerFrom,
     data->lpSendBuffers, data->cBuffers, data->dwMessageSize,
     data->dwPriority, data->dwTimeout, data->lpDPContext,
     data->lpdwSPMsgID, data->bSystemMessage
   );
+
+  cout << data << endl;
+
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_SendToGroupEx (DPSP_SENDTOGROUPEXDATA* data) {
-  g_message(
+  g_debug(
     "SendToGroupEx (%p,0x%08lx,%ld,%ld,%p,%ld,%ld,%ld,%ld,%p,%p) stub",
     data->lpISP, data->dwFlags, data->idGroupTo, data->idPlayerFrom,
     data->lpSendBuffers, data->cBuffers, data->dwMessageSize,
     data->dwPriority, data->dwTimeout, data->lpDPContext,
     data->lpdwSPMsgID
   );
+
+  cout << data << endl;
+
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_Cancel (DPSP_CANCELDATA* data) {
-  g_message(
+  g_debug(
     "Cancel (%p,0x%08lx,%p,%ld,0x%08lx,0x%08lx) stub",
     data->lpISP, data->dwFlags, data->lprglpvSPMsgID, data->cSPMsgID,
     data->dwMinPriority, data->dwMaxPriority
   );
+
+  cout << data << endl;
+
   return DPERR_UNSUPPORTED;
 }
 
 static HRESULT WINAPI DPNice_GetMessageQueue (DPSP_GETMESSAGEQUEUEDATA* data) {
-  g_message(
+  g_debug(
     "GetMessageQueue (%p,0x%08lx,%ld,%ld,%p,%p) stub",
     data->lpISP, data->dwFlags, data->idFrom, data->idTo,
     data->lpdwNumMsgs, data->lpdwNumBytes
   );
+
+  cout << data << endl;
+
   return DPERR_UNSUPPORTED;
 }
 
@@ -384,9 +419,13 @@ static void setupCallbacks (DPSP_SPCALLBACKS* callbacks) {
 }
 
 static HRESULT init (SPINITDATA* spData) {
-  g_message("SPInit");
+  g_debug("SPInit");
 
-  g_message("[SPInit] Initializing library for %s (%ls)", to_string(*spData->lpGuid).c_str(), spData->lpszName);
+  g_info(
+    "[SPInit] Initializing library for %s (%ls)",
+    to_string(*spData->lpGuid).c_str(),
+    spData->lpszName
+  );
 
   // We only support NICE service
   if (!IsEqualGUID(*spData->lpGuid, DPSPGUID_NICE)) {
@@ -395,7 +434,8 @@ static HRESULT init (SPINITDATA* spData) {
 
   setupCallbacks(spData->lpCB);
 
-  g_message("[SPInit] Have callbacks");
+  g_debug("[SPInit] Have callbacks");
+  g_debug("[SPInit] Provider = %p", spData->lpISP);
 
   gloop = g_main_loop_new(NULL, FALSE);
 
@@ -413,7 +453,7 @@ __declspec(dllexport) HRESULT __cdecl SPInit (SPINITDATA* spData) {
 }
 
 BOOL WINAPI DllMain (HINSTANCE instance, DWORD reason, void* reserved) {
-  g_message("DllMain (0x%p, %ld, %p)", instance, reason, reserved);
+  g_debug("DllMain (0x%p, %ld, %p)", instance, reason, reserved);
 
   switch (reason) {
   case DLL_PROCESS_ATTACH:
