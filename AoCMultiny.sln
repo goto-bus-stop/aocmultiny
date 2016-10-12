@@ -10,9 +10,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AoCMultiny", "AoCMultiny.vc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{9CAEACA7-F3A0-4F0C-A67E-2C1C4D95D0D0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glib", "libnice\win32\vs9\glib.vcxproj", "{DD34FAC7-C1A2-4F29-8C96-3F053B47D714}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glib", "build\glib.vcxproj", "{DD34FAC7-C1A2-4F29-8C96-3F053B47D714}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libnice", "libnice\win32\vs9\libnice.vcxproj", "{550C7FB8-DBFE-4364-B26A-DAF7158CD878}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libnice", "build\libnice.vcxproj", "{550C7FB8-DBFE-4364-B26A-DAF7158CD878}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD34FAC7-C1A2-4F29-8C96-3F053B47D714} = {DD34FAC7-C1A2-4F29-8C96-3F053B47D714}
 	EndProjectSection

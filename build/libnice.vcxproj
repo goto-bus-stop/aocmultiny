@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{550C7FB8-DBFE-4364-B26A-DAF7158CD878}</ProjectGuid>
+    <RootNamespace>libnice</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.25420.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)lib\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\$(ProjectName)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\$(ProjectName)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules />
+    <CodeAnalysisRuleAssemblies />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\libnice\glib\include\glib-2.0;..\libnice\glib\lib\glib-2.0\include;..\libnice\socket;.;..\libnice\;..\libnice\stun;..\libnice\random;..\libnice\agent;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;HAVE_CONFIG_H;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>iphlpapi.lib;ws2_32.lib;glib-2.0.lib;gobject-2.0.lib;gio-2.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\libnice\glib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>libnice.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\libnice\glib\include\glib-2.0;..\libnice\glib\lib\glib-2.0\include;..\libnice\socket;.;..\libnice\;..\libnice\stun;..\libnice\random;..\libnice\agent;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;HAVE_CONFIG_H;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>iphlpapi.lib;ws2_32.lib;glib-2.0.lib;gobject-2.0.lib;gio-2.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\libnice\glib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>libnice.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\libnice\agent\address.c" />
+    <ClCompile Include="..\libnice\agent\agent.c" />
+    <ClCompile Include="..\libnice\agent\candidate.c" />
+    <ClCompile Include="..\libnice\agent\component.c" />
+    <ClCompile Include="..\libnice\agent\conncheck.c" />
+    <ClCompile Include="..\libnice\agent\debug.c" />
+    <ClCompile Include="..\libnice\agent\discovery.c" />
+    <ClCompile Include="..\libnice\agent\inputstream.c" />
+    <ClCompile Include="..\libnice\agent\interfaces.c" />
+    <ClCompile Include="..\libnice\agent\iostream.c" />
+    <ClCompile Include="..\libnice\agent\outputstream.c" />
+    <ClCompile Include="..\libnice\agent\pseudotcp.c" />
+    <ClCompile Include="..\libnice\agent\stream.c" />
+    <ClCompile Include="..\libnice\random\random-glib.c" />
+    <ClCompile Include="..\libnice\random\random.c" />
+    <ClCompile Include="..\libnice\socket\http.c" />
+    <ClCompile Include="..\libnice\socket\pseudossl.c" />
+    <ClCompile Include="..\libnice\socket\socket.c" />
+    <ClCompile Include="..\libnice\socket\socks5.c" />
+    <ClCompile Include="..\libnice\socket\tcp-active.c" />
+    <ClCompile Include="..\libnice\socket\tcp-bsd.c" />
+    <ClCompile Include="..\libnice\socket\tcp-passive.c" />
+    <ClCompile Include="..\libnice\socket\udp-bsd.c" />
+    <ClCompile Include="..\libnice\socket\udp-turn-over-tcp.c" />
+    <ClCompile Include="..\libnice\socket\udp-turn.c" />
+    <ClCompile Include="..\libnice\stun\debug.c">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)debug-stun.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)debug-stun.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\libnice\stun\md5.c" />
+    <ClCompile Include="..\libnice\stun\rand.c" />
+    <ClCompile Include="..\libnice\stun\sha1.c" />
+    <ClCompile Include="..\libnice\stun\stun5389.c" />
+    <ClCompile Include="..\libnice\stun\stunagent.c" />
+    <ClCompile Include="..\libnice\stun\stuncrc32.c" />
+    <ClCompile Include="..\libnice\stun\stunhmac.c" />
+    <ClCompile Include="..\libnice\stun\stunmessage.c" />
+    <ClCompile Include="..\libnice\stun\usages\bind.c" />
+    <ClCompile Include="..\libnice\stun\usages\ice.c" />
+    <ClCompile Include="..\libnice\stun\usages\timer.c" />
+    <ClCompile Include="..\libnice\stun\usages\turn.c">
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)turn-stun.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)turn-stun.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\libnice\stun\utils.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\libnice\agent\address.h" />
+    <ClInclude Include="..\libnice\agent\agent-priv.h" />
+    <ClInclude Include="..\libnice\agent\agent.h" />
+    <ClInclude Include="..\libnice\agent\candidate.h" />
+    <ClInclude Include="..\libnice\agent\component.h" />
+    <ClInclude Include="..\libnice\agent\conncheck.h" />
+    <ClInclude Include="..\libnice\agent\debug.h" />
+    <ClInclude Include="..\libnice\agent\discovery.h" />
+    <ClInclude Include="..\libnice\agent\inputstream.h" />
+    <ClInclude Include="..\libnice\agent\interfaces.h" />
+    <ClInclude Include="..\libnice\agent\iostream.h" />
+    <ClInclude Include="..\libnice\agent\outputstream.h" />
+    <ClInclude Include="..\libnice\agent\pseudotcp.h" />
+    <ClInclude Include="..\libnice\agent\stream.h" />
+    <ClInclude Include="..\libnice\random\random-glib.h" />
+    <ClInclude Include="..\libnice\random\random.h" />
+    <ClInclude Include="..\libnice\socket\http.h" />
+    <ClInclude Include="..\libnice\socket\pseudossl.h" />
+    <ClInclude Include="..\libnice\socket\socket.h" />
+    <ClInclude Include="..\libnice\socket\socks5.h" />
+    <ClInclude Include="..\libnice\socket\tcp-active.h" />
+    <ClInclude Include="..\libnice\socket\tcp-bsd.h" />
+    <ClInclude Include="..\libnice\socket\tcp-passive.h" />
+    <ClInclude Include="..\libnice\socket\turn.h" />
+    <ClInclude Include="..\libnice\socket\udp-bsd.h" />
+    <ClInclude Include="..\libnice\socket\udp-turn-over-tcp.h" />
+    <ClInclude Include="..\libnice\socket\udp-turn.h" />
+    <ClInclude Include="..\libnice\stun\constants.h" />
+    <ClInclude Include="..\libnice\stun\debug.h" />
+    <ClInclude Include="..\libnice\stun\md5.h" />
+    <ClInclude Include="..\libnice\stun\rand.h" />
+    <ClInclude Include="..\libnice\stun\sha1.h" />
+    <ClInclude Include="..\libnice\stun\stun5389.h" />
+    <ClInclude Include="..\libnice\stun\stunagent.h" />
+    <ClInclude Include="..\libnice\stun\stuncrc32.h" />
+    <ClInclude Include="..\libnice\stun\stunhmac.h" />
+    <ClInclude Include="..\libnice\stun\stunmessage.h" />
+    <ClInclude Include="..\libnice\stun\usages\bind.h" />
+    <ClInclude Include="..\libnice\stun\usages\ice.h" />
+    <ClInclude Include="..\libnice\stun\usages\timer.h" />
+    <ClInclude Include="..\libnice\stun\usages\turn.h" />
+    <ClInclude Include="..\libnice\stun\utils.h" />
+    <ClInclude Include="..\libnice\stun\win32_common.h" />
+    <ClInclude Include="..\libnice\win32\vs9\config.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libnice.def" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

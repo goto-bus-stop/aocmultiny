@@ -1,5 +1,5 @@
 #pragma once
-#include <nice/agent.h>
+#include <agent.h>
 
 namespace nicesp {
 
