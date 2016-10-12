@@ -28,12 +28,12 @@ public:
   EventListeners () : listeners(vector<Listener> ()) {}
 
   void emit (Args... args) {
-    for (auto l : this->listeners) {
+    for (Listener l : this->listeners) {
       l(args...);
     }
   }
 
-  EventListeners& operator+= (auto l) {
+  EventListeners& operator+= (Listener l) {
     this->listeners.push_back(l);
     return *this;
   }
