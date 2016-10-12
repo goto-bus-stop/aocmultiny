@@ -70,7 +70,7 @@ public:
 
   void waitUntilConnectedWithHost ();
 
-  function<void(void*, gsize)> onMessage;
+  function<void(DPID, void*, gsize)> onMessage;
 };
 
 }

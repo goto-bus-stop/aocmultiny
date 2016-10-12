@@ -17,6 +17,7 @@ const guint DEFAULT_SIGNALING_PORT = 7788;
 
 GMainLoop* gloop;
 IDirectPlayLobby3A* _lobby;
+map<void*, DPID> _replyTargetsHACK;
 
 static GameSession* getGameSession (IDirectPlaySP* provider) {
   g_debug("[getGameSession]");
@@ -112,7 +113,23 @@ static HRESULT WINAPI DPNice_Reply (DPSP_REPLYDATA* data) {
     return DP_OK;
   }
 
-  return DPERR_UNSUPPORTED;
+  DPID target = 0;
+  try {
+    target = _replyTargetsHACK.at(data->lpMessage);
+  } catch (std::out_of_range) {
+    g_warning("[DPNice_Reply] Not sure what to reply to");
+    return DPERR_UNSUPPORTED;
+  }
+
+  g_debug("[DPNice_Reply] Replying to %ld", target);
+  auto player = session->getPlayerById(target);
+  if (!player) {
+    g_warning("[DPNice_Reply] Could not find player");
+    return DPERR_UNAVAILABLE;
+  }
+
+  player->send(data->dwMessageSize, data->lpMessage);
+  return DP_OK;
 }
 
 static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
@@ -283,9 +300,19 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   // TODO Initially connect with zeroed IDs, then update them in CreatePlayer.
   connection->connect(getSessionGuid(), isHost);
 
-  session->onMessage = [provider] (auto data, auto size) {
-    g_message("[Receive] Receiving message %d", size);
+  session->onMessage = [provider] (const auto id, auto data, const auto size) {
+    g_debug("[Open/onMessage] Receiving message (%d bytes) from %ld", size, id);
+    _replyTargetsHACK[data] = id;
+
+    g_debug("[Open/onMessage] probe provider (%p)", provider);
+    DWORD flags = 0;
+    auto hr = provider->GetPlayerFlags(0, &flags);
+    g_debug("[Open/onMessage] result = %02lx", hr);
+
+    g_debug("[Open/onMessage] HandleMessage (cmd = %02x)", reinterpret_cast<short*>(data)[2]);
     provider->HandleMessage(data, size, NULL);
+    g_debug("[Open/onMessage] Handled message");
+    _replyTargetsHACK.erase(data);
   };
 
   if (isHost) {

@@ -41,7 +41,7 @@ static void onReceiveNicePacket (
   auto player = reinterpret_cast<Player*>(data);
   g_debug("[onReceiveNicePacket] from %ld", player->id);
   auto onMessage = player->getSession()->onMessage;
-  onMessage(buf, len);
+  onMessage(player->id, buf, len);
 }
 
 Player::Player (GameSession* session, DPID id)
