@@ -193,13 +193,13 @@ typedef struct tagDPNAME
     {
         LPWSTR  lpszShortName;
         LPSTR   lpszShortNameA;
-    } DUMMYUNIONNAME1;
+    };
 
     union /*playerLongName */       /* Player's formal/real name */
     {
         LPWSTR  lpszLongName;
         LPSTR   lpszLongNameA;
-    } DUMMYUNIONNAME2;
+    };
 
 } DPNAME, *LPDPNAME;
 
@@ -243,13 +243,13 @@ typedef struct tagDPSESSIONDESC2
     {
         LPWSTR  lpszSessionName;
         LPSTR   lpszSessionNameA;
-    } DUMMYUNIONNAME1;
+    };
 
     union  /* Optional password */
     {
         LPWSTR  lpszPassword;
         LPSTR   lpszPasswordA;
-    } DUMMYUNIONNAME2;
+    };
 
     DWORD   dwReserved1;
     DWORD   dwReserved2;
@@ -303,7 +303,7 @@ typedef struct tagDPCHAT
     {                          /* Message string */
         LPWSTR  lpszMessage;   /* Unicode */
         LPSTR   lpszMessageA;  /* ANSI */
-    } DUMMYUNIONNAME;
+    };
 } DPCHAT, *LPDPCHAT;
 
 typedef struct
@@ -321,12 +321,12 @@ typedef struct tagDPSECURITYDESC
     {                               /* SSPI provider name */
         LPWSTR  lpszSSPIProvider;   /* Unicode */
         LPSTR   lpszSSPIProviderA;  /* ANSI */
-    } DUMMYUNIONNAME1;
+    };
     union
     {                               /* CAPI provider name */
         LPWSTR lpszCAPIProvider;    /* Unicode */
         LPSTR  lpszCAPIProviderA;   /* ANSI */
-    } DUMMYUNIONNAME2;
+    };
     DWORD dwCAPIProviderType;       /* Crypto Service Provider type */
     DWORD dwEncryptionAlgorithm;    /* Encryption Algorithm type */
 } DPSECURITYDESC, *LPDPSECURITYDESC;
@@ -341,31 +341,31 @@ typedef struct tagDPCREDENTIALS
     {                           /* User name of the account */
         LPWSTR  lpszUsername;   /* Unicode */
         LPSTR   lpszUsernameA;  /* ANSI */
-    } DUMMYUNIONNAME1;
+    };
     union
     {                           /* Password of the account */
         LPWSTR  lpszPassword;   /* Unicode */
         LPSTR   lpszPasswordA;  /* ANSI */
-    } DUMMYUNIONNAME2;
+    };
     union
     {                           /* Domain name of the account */
         LPWSTR  lpszDomain;     /* Unicode */
         LPSTR   lpszDomainA;    /* ANSI */
-    } DUMMYUNIONNAME3;
+    };
 } DPCREDENTIALS, *LPDPCREDENTIALS;
 
 typedef const DPCREDENTIALS *LPCDPCREDENTIALS;
 
 
 
-typedef WINBOOL (CALLBACK *LPDPENUMDPCALLBACKW)(
+typedef BOOL (CALLBACK *LPDPENUMDPCALLBACKW)(
     LPGUID      lpguidSP,
     LPWSTR      lpSPName,
     DWORD       dwMajorVersion,
     DWORD       dwMinorVersion,
     LPVOID      lpContext);
 
-typedef WINBOOL (CALLBACK *LPDPENUMDPCALLBACKA)(
+typedef BOOL (CALLBACK *LPDPENUMDPCALLBACKA)(
     LPGUID      lpguidSP,
     LPSTR       lpSPName,       /* ptr to str w/ driver description */
     DWORD       dwMajorVersion, /* Major # of driver spec in lpguidSP */
@@ -379,7 +379,7 @@ typedef const GUID *LPCGUID;
 
 typedef const DPNAME *LPCDPNAME;
 
-typedef WINBOOL (CALLBACK *LPDPENUMCONNECTIONSCALLBACK)(
+typedef BOOL (CALLBACK *LPDPENUMCONNECTIONSCALLBACK)(
     LPCGUID     lpguidSP,
     LPVOID      lpConnection,
     DWORD       dwConnectionSize,
@@ -387,7 +387,7 @@ typedef WINBOOL (CALLBACK *LPDPENUMCONNECTIONSCALLBACK)(
     DWORD       dwFlags,
     LPVOID      lpContext);
 
-typedef WINBOOL (CALLBACK *LPDPENUMSESSIONSCALLBACK)(
+typedef BOOL (CALLBACK *LPDPENUMSESSIONSCALLBACK)(
     LPDPSESSIONDESC lpDPSessionDesc,
     LPVOID      lpContext,
     LPDWORD     lpdwTimeOut,
@@ -398,21 +398,21 @@ extern HRESULT WINAPI DirectPlayEnumerateA( LPDPENUMDPCALLBACKA, LPVOID );
 extern HRESULT WINAPI DirectPlayEnumerateW( LPDPENUMDPCALLBACKW, LPVOID );
 extern HRESULT WINAPI DirectPlayCreate( LPGUID lpGUID, LPDIRECTPLAY *lplpDP, IUnknown *pUnk );
 
-typedef WINBOOL (CALLBACK *LPDPENUMPLAYERSCALLBACK)(
+typedef BOOL (CALLBACK *LPDPENUMPLAYERSCALLBACK)(
     DPID   dpId,
     LPSTR  lpFriendlyName,
     LPSTR  lpFormalName,
     DWORD  dwFlags,
     LPVOID          lpContext );
 
-typedef WINBOOL (CALLBACK *LPDPENUMPLAYERSCALLBACK2)(
+typedef BOOL (CALLBACK *LPDPENUMPLAYERSCALLBACK2)(
     DPID            dpId,
     DWORD           dwPlayerType,
     LPCDPNAME       lpName,
     DWORD           dwFlags,
     LPVOID          lpContext );
 
-typedef WINBOOL (CALLBACK *LPDPENUMSESSIONSCALLBACK2)(
+typedef BOOL (CALLBACK *LPDPENUMSESSIONSCALLBACK2)(
     LPCDPSESSIONDESC2   lpThisSD,
     LPDWORD             lpdwTimeOut,
     DWORD               dwFlags,
@@ -438,7 +438,7 @@ DECLARE_INTERFACE_(IDirectPlay,IUnknown)
     STDMETHOD(DeletePlayerFromGroup)(THIS_ DPID idGroup, DPID idPlayer) PURE;
     STDMETHOD(DestroyPlayer)(THIS_ DPID idPlayer) PURE;
     STDMETHOD(DestroyGroup)(THIS_ DPID idGroup) PURE;
-    STDMETHOD(EnableNewPlayers)(THIS_ WINBOOL) PURE;
+    STDMETHOD(EnableNewPlayers)(THIS_ BOOL) PURE;
     STDMETHOD(EnumGroupPlayers)(THIS_ DPID idGroup, LPDPENUMPLAYERSCALLBACK lpEnumPlayersCallback, LPVOID lpContext, DWORD dwFlags) PURE;
     STDMETHOD(EnumGroups)(THIS_ DWORD, LPDPENUMPLAYERSCALLBACK lpEnumPlayersCallback, LPVOID lpContext, DWORD dwFlags) PURE;
     STDMETHOD(EnumPlayers)(THIS_ DWORD, LPDPENUMPLAYERSCALLBACK lpEnumPlayersCallback, LPVOID lpContext, DWORD dwFlags) PURE;

@@ -1,4 +1,3 @@
-#include <_mingw_unicode.h>
 #undef INTERFACE
 /*
  * Copyright (C) 1999 Francois Gouget
@@ -351,18 +350,18 @@ extern HRESULT WINAPI DirectPlayLobbyCreateA(LPGUID, LPDIRECTPLAYLOBBYA*, IUnkno
 #define DirectPlayLobbyCreate __MINGW_NAME_AW(DirectPlayLobbyCreate)
 
 
-typedef WINBOOL (CALLBACK *LPDPENUMADDRESSCALLBACK)(
+typedef BOOL (CALLBACK *LPDPENUMADDRESSCALLBACK)(
     REFGUID         guidDataType,
     DWORD           dwDataSize,
     LPCVOID         lpData,
     LPVOID          lpContext );
 
-typedef WINBOOL (CALLBACK *LPDPLENUMADDRESSTYPESCALLBACK)(
+typedef BOOL (CALLBACK *LPDPLENUMADDRESSTYPESCALLBACK)(
     REFGUID         guidDataType,
     LPVOID          lpContext,
     DWORD           dwFlags );
 
-typedef WINBOOL (CALLBACK *LPDPLENUMLOCALAPPLICATIONSCALLBACK)(
+typedef BOOL (CALLBACK *LPDPLENUMLOCALAPPLICATIONSCALLBACK)(
     LPCDPLAPPINFO   lpAppInfo,
     LPVOID          lpContext,
     DWORD           dwFlags );
