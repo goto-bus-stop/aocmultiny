@@ -221,7 +221,6 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   auto port = DEFAULT_SIGNALING_PORT;
   auto connection = new SignalingConnection(host, port);
   auto session = new GameSession(connection, isHost);
-  _session=session;
 
   auto sessionRef = &session;
   auto provider = data->lpISP;
