@@ -4,7 +4,7 @@
 #include "DPName.hpp"
 #include "DPSessionDesc.hpp"
 #include "DPLobby.hpp"
-#include "util.hpp"
+#include "dputil.hpp"
 #include "../util.hpp"
 #include <dplay.h>
 #include <dplobby.h>

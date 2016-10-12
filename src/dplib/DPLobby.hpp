@@ -2,7 +2,7 @@
 #include "DPAddress.hpp"
 #include "DPGame.hpp"
 #include "DPSession.hpp"
-#include "util.hpp"
+#include "dputil.hpp"
 #include <dplay.h>
 #include <dplobby.h>
 

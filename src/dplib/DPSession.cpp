@@ -2,6 +2,12 @@
 #include <iostream>
 #include "DPSession.hpp"
 #include "DPGame.hpp"
+#include "DPLobby.hpp"
+#include "DPAddress.hpp"
+#include "DPLConnection.hpp"
+#include "DPSessionDesc.hpp"
+#include "DPName.hpp"
+#include "dputil.hpp"
 
 using namespace std;
 

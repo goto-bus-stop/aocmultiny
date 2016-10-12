@@ -91,6 +91,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>.\src;$(WindowsSDK_IncludePath);$(WXWIN)\include\msvc;$(WXWIN)\include;$(VC_IncludePath);$(DXSDK_DIR)Include</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
+    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
