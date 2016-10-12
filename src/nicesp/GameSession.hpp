@@ -13,36 +13,60 @@ extern GMainLoop* gloop;
 class GameSession;
 
 class Player {
-private:
+protected:
   GameSession* session;
 public:
   DPID id;
-  NiceAgent* agent;
 
   Player (GameSession* session, DPID id);
-  ~Player ();
+  virtual ~Player ();
   GameSession* getSession ();
+  virtual gint send (gsize size, void* message);
+};
+
+class RemotePlayer: public Player {
+public:
+  NiceAgent* agent;
+  RemotePlayer (GameSession* session, DPID id);
+  virtual ~RemotePlayer ();
+
+  virtual gint send(gsize size, void* message);
+};
+
+class LocalPlayer: public Player {
+public:
+  LocalPlayer (GameSession* session, DPID id);
+  virtual ~LocalPlayer ();
+
+  virtual gint send(gsize size, void* message);
 };
 
 class GameSession {
 private:
-  vector<Player*> players;
+  vector<RemotePlayer*> players;
   SignalingConnection* signaling;
   HANDLE remoteSdpEvent = NULL;
+  Player* nameServer;
+  Player* localPlayer;
 public:
   GameSession (SignalingConnection* signaling, bool isHost);
   ~GameSession ();
 
   bool isHost;
 
-  NiceAgent* getPlayerAgent (DPID id);
   SignalingConnection* getSignalingConnection ();
+
+  void setLocalPlayer (DPID id);
+  void setNameServer (DPID id);
+
+  Player* getPlayerById (DPID id);
+  Player* getLocalPlayer ();
+  Player* getNameServerPlayer ();
 
   void processNewPlayer (DPID id);
   void deletePlayer (DPID id);
   void processSdp (DPID id, const gchar* sdp);
   void processReady (DPID remote);
-  Player* getPlayerById (DPID id);
 
   void waitUntilConnectedWithHost ();
 

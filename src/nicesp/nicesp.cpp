@@ -10,9 +10,6 @@ using namespace std;
 
 namespace nicesp {
 
-#define TEST_HOSTID 1
-#define TEST_JOINID 3
-
 const gchar* DEFAULT_SIGNALING_HOST = "localhost";
 const guint DEFAULT_SIGNALING_PORT = 7788;
 
@@ -42,7 +39,11 @@ DPLCONNECTION* getDPLConnection () {
 }
 
 GUID getSessionGuid () {
+  g_message("[getSessionGuid]");
   auto connection = getDPLConnection();
+  if (connection == NULL) {
+    g_message("[getSessionGuid] DPLConnection is null");
+  }
   auto guid = connection->lpSessionDesc->guidInstance;
   free(connection);
   return guid;
@@ -66,7 +67,7 @@ static HRESULT WINAPI DPNice_EnumSessions (DPSP_ENUMSESSIONSDATA* data) {
       DEFAULT_SIGNALING_HOST, DEFAULT_SIGNALING_PORT);
     enumSessionsSC->onEnumSessionsResponse = [provider] (auto data, auto size) {
       g_message("[EnumSessions] Discovered session %d", size);
-      provider->HandleMessage(data, size, NULL);
+      provider->HandleMessage(data, size, 0);
     };
   }
   enumSessionsSC->relayEnumSessions(getSessionGuid());
@@ -112,18 +113,29 @@ static HRESULT WINAPI DPNice_Send (DPSP_SENDDATA* data) {
     data->bSystemMessage, data->lpISP
   );
 
-  auto session = getGameSession(data->lpISP);
+  cout << data << endl;
+
+  auto provider = data->lpISP;
+  auto session = getGameSession(provider);
 
   auto target = data->idPlayerTo;
-  if (target == DPID_ALLPLAYERS) {
-    target = TEST_HOSTID;
+  Player* player;
+  if (target == 0) {
+    g_message("[DPNice_Send] Send to name server");
+    player = session->getNameServerPlayer();
   } else {
-    target = TEST_JOINID;
+    g_message("[DPNice_Send] Send to player %ld", target);
+    player = session->getPlayerById(target);
   }
-  auto player = session->getPlayerById(target);
-  auto stream = player->agent->getStream(1);
 
-  stream->send(1, data->dwMessageSize, static_cast<gchar*>(data->lpMessage));
+  if (!player) {
+    g_message("[DPNice_Send] Player not found");
+    return DPERR_UNAVAILABLE;
+  }
+
+  g_message("[DPNice_Send] player = %ld", player->id);
+
+  player->send(data->dwMessageSize, data->lpMessage);
 
   return DP_OK;
 }
@@ -135,12 +147,33 @@ static HRESULT WINAPI DPNice_CreatePlayer (DPSP_CREATEPLAYERDATA* data) {
     data->lpSPMessageHeader, data->lpISP
   );
 
-  auto session = getGameSession(data->lpISP);
+  cout << data << endl;
 
-  if (data->dwFlags == DPLAYI_PLAYER_PLAYERLOCAL && data->dwFlags & DPLAYI_PLAYER_NAMESRVR) {
-    // Creating our local player, register with the signaling server.
-    // session->getSignalingConnection()
-    //   ->authenticate(data->idPlayer);
+  auto provider = data->lpISP;
+  auto session = getGameSession(provider);
+
+  const auto isLocal = (data->dwFlags & DPLAYI_PLAYER_PLAYERLOCAL) != 0;
+  const auto isNameServer = (data->dwFlags & DPLAYI_PLAYER_NAMESRVR) != 0;
+  const auto isSystemPlayer = (data->dwFlags & DPLAYI_PLAYER_SYSPLAYER) != 0;
+
+  if (isLocal && !isSystemPlayer) {
+    // We are player $data->idPlayer
+    session->setLocalPlayer(data->idPlayer);
+  }
+  if (isNameServer) {
+    session->setNameServer(data->idPlayer);
+    if (isLocal) {
+      // We are the name server
+      // TODO Do something here?
+      // session->getSignalingConnection()
+      //   ->authenticate(data->idPlayer);
+    }
+  }
+
+  const auto player = session->getPlayerById(data->idPlayer);
+  if (player) {
+    auto refPlayer = &player;
+    provider->SetSPPlayerData(data->idPlayer, &refPlayer, sizeof(refPlayer), DPSET_LOCAL);
   }
 
   return DP_OK;
@@ -207,6 +240,11 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
     data->bReturnStatus, data->dwOpenFlags, data->dwSessionFlags
   );
 
+  cout << data << endl;
+
+  const auto isHost = !!data->bCreate;
+  auto provider = data->lpISP;
+
   g_thread_new("main loop", &startThread, NULL);
 
   if (enumSessionsSC) {
@@ -223,7 +261,7 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   auto session = new GameSession(connection, isHost);
 
   auto sessionRef = &session;
-  auto provider = data->lpISP;
+  g_message("[Open] SetSPData");
   provider->SetSPData(&sessionRef, sizeof(sessionRef), DPSET_LOCAL);
 
   // Register immediately, with fake IDs for now.
