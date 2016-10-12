@@ -11,7 +11,7 @@ wstring to_wstring (GUID guid) {
   wchar_t* chars;
   StringFromIID(guid, &chars);
   wstring wstr = chars;
-  free(chars);
+  CoTaskMemFree(chars);
   return wstr;
 };
 
@@ -23,7 +23,7 @@ string to_string (GUID guid) {
   for (int i = 0; i < l; i++) {
     str.push_back(chars[i]);
   }
-  free(chars);
+  CoTaskMemFree(chars);
   return str;
 }
 
