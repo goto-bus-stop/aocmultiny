@@ -292,11 +292,6 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
     g_debug("[Open/onMessage] Receiving message (%d bytes) from %ld", size, id);
     _replyTargetsHACK[data] = id;
 
-    g_debug("[Open/onMessage] probe provider (%p)", _providerHACK);
-    DWORD flags = 0;
-    auto hr = _providerHACK->GetPlayerFlags(0, &flags);
-    g_debug("[Open/onMessage] result = %02lx", hr);
-
     g_debug("[Open/onMessage] HandleMessage (cmd = %02x)", reinterpret_cast<short*>(data)[2]);
     _providerHACK->HandleMessage(data, size, NULL);
     g_debug("[Open/onMessage] Handled message");
