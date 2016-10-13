@@ -21,6 +21,7 @@ const guint DEFAULT_SIGNALING_PORT = 7788;
 GMainLoop* gloop;
 map<void*, DPID> _replyTargetsHACK;
 GameSession* _gameSession;
+IDirectPlaySP* _providerHACK;
 
 static GameSession* getGameSession (IDirectPlaySP* provider) {
   g_debug("[getGameSession] stub");
@@ -265,6 +266,7 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
 
   const auto isHost = !!data->bCreate;
   auto provider = data->lpISP;
+  _providerHACK = provider;
 
   g_thread_new("main loop", &startThread, NULL);
 
@@ -286,17 +288,17 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   // TODO Initially connect with zeroed IDs, then update them in CreatePlayer.
   connection->connect(getSessionGuid(), isHost);
 
-  session->onMessage = [provider] (const auto id, auto data, const auto size) {
+  session->onMessage = [] (const auto id, auto data, const auto size) {
     g_debug("[Open/onMessage] Receiving message (%d bytes) from %ld", size, id);
     _replyTargetsHACK[data] = id;
 
-    g_debug("[Open/onMessage] probe provider (%p)", provider);
+    g_debug("[Open/onMessage] probe provider (%p)", _providerHACK);
     DWORD flags = 0;
-    auto hr = provider->GetPlayerFlags(0, &flags);
+    auto hr = _providerHACK->GetPlayerFlags(0, &flags);
     g_debug("[Open/onMessage] result = %02lx", hr);
 
     g_debug("[Open/onMessage] HandleMessage (cmd = %02x)", reinterpret_cast<short*>(data)[2]);
-    provider->HandleMessage(data, size, NULL);
+    _providerHACK->HandleMessage(data, size, NULL);
     g_debug("[Open/onMessage] Handled message");
     _replyTargetsHACK.erase(data);
   };
