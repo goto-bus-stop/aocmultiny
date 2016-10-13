@@ -14,8 +14,10 @@ DPName::DPName (std::string name)
 void DPName::alloc () {
   this->dpName = new DPNAME;
 
-  auto nameStr = new char[this->name.size() + 1];
-  memcpy(nameStr, this->name.c_str(), this->name.size());
+  const auto length = this->name.size();
+  auto nameStr = new char[length + 1];
+  nameStr[length] = '\0';
+  memcpy(nameStr, this->name.c_str(), length);
 
   this->dpName->dwSize = sizeof(DPNAME);
   this->dpName->dwFlags = 0;
