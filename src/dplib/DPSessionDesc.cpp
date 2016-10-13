@@ -21,6 +21,22 @@ bool DPSessionDesc::isHost () {
   return this->host;
 }
 
+GUID DPSessionDesc::getApplicationGuid () {
+  return this->guidApplication;
+}
+
+GUID DPSessionDesc::getSessionGuid () {
+  return this->guidInstance;
+}
+
+string DPSessionDesc::getName () {
+  return this->name;
+}
+
+string DPSessionDesc::getPassword () {
+  return this->pass;
+}
+
 void DPSessionDesc::alloc () {
   auto sessionDesc = new DPSESSIONDESC2;
   sessionDesc->dwSize = sizeof(DPSESSIONDESC2);

@@ -18,6 +18,18 @@ DPLConnection::DPLConnection (DPAddress* address, DPSessionDesc* sessionDesc, DP
     dpConnection(NULL) {
 }
 
+DPAddress* DPLConnection::getAddress () {
+  return this->address;
+}
+
+DPSessionDesc* DPLConnection::getSessionDesc () {
+  return this->sessionDesc;
+}
+
+DPName* DPLConnection::getPlayerName () {
+  return this->name;
+}
+
 void DPLConnection::alloc () {
   auto connection = new DPLCONNECTION;
   connection->dwSize = sizeof(DPLCONNECTION);

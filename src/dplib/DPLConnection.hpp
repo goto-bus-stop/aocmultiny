@@ -25,6 +25,21 @@ public:
   ~DPLConnection ();
 
   /**
+   * Get the DPAddress.
+   */
+  DPAddress* getAddress ();
+
+  /**
+   * Get the session description for this lobby connection.
+   */
+  DPSessionDesc* getSessionDesc ();
+
+  /**
+   * Get the local player's name.
+   */
+  DPName* getPlayerName ();
+
+  /**
    * Allocate the raw DirectPlay DPLCONNECTION.
    * `unwrap` calls this automatically if necessary, so this method should
    * normally not be used directly.
