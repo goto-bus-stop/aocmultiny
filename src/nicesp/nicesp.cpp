@@ -18,13 +18,11 @@ const guint DEFAULT_SIGNALING_PORT = 7788;
 GMainLoop* gloop;
 IDirectPlayLobby3A* _lobby;
 map<void*, DPID> _replyTargetsHACK;
+GameSession* _gameSession;
 
 static GameSession* getGameSession (IDirectPlaySP* provider) {
-  g_debug("[getGameSession]");
-  DWORD size = sizeof(GameSession);
-  void* session = new BYTE[size];
-  provider->GetSPData(&session, &size, DPGET_LOCAL);
-  return static_cast<GameSession*>(session);
+  g_debug("[getGameSession] stub");
+  return _gameSession;
 }
 
 /**
@@ -292,9 +290,8 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
   auto connection = new SignalingConnection(host, port);
   auto session = new GameSession(connection, isHost);
 
-  auto sessionRef = &session;
-  g_debug("[Open] SetSPData");
-  provider->SetSPData(&sessionRef, sizeof(sessionRef), DPSET_LOCAL);
+  g_debug("[Open] SetSPData (stubbed)");
+  _gameSession = session;
 
   // Register immediately, with fake IDs for now.
   // TODO Initially connect with zeroed IDs, then update them in CreatePlayer.
