@@ -16,7 +16,7 @@ UTIL_OBJECTS = $(UTIL_FILES:.cpp=.o)
 
 # dplib target
 DPLIB_SRC = src/dplib
-DPLIB_FILES = $(shell find $(DPLIB_SRC) -name "*.cpp")
+DPLIB_FILES = $(shell find $(DPLIB_SRC) -name "*.cpp" \! -path "*/test/*")
 DPLIB_OBJECTS = $(DPLIB_FILES:.cpp=.o) $(UTIL_OBJECTS)
 DPLIB_TARGET = lib/dplib.lib
 
@@ -33,9 +33,9 @@ CLIENT_LDFLAGS = -static $(LD_DPLIB) -lole32 -loleaut32 -lws2_32 $(shell $(WXC) 
 NICESP_TARGET = nicesp.dll
 NICESP_SRC = src/nicesp
 NICESP_FILES = $(shell find $(NICESP_SRC) -name "*.cpp")
-NICESP_OBJECTS = $(NICESP_FILES:.cpp=.o) $(UTIL_OBJECTS)
-NICESP_CFLAGS = $(shell $(PKGCONFIG) --cflags gio-2.0 nice)
-NICESP_LDFLAGS = -shared -lole32 -ldxguid $(shell $(PKGCONFIG) --libs gio-2.0 nice)
+NICESP_OBJECTS = $(NICESP_FILES:.cpp=.o) $(DPLIB_OBJECTS)
+NICESP_CFLAGS = -Isrc/ $(shell $(PKGCONFIG) --cflags gio-2.0 nice)
+NICESP_LDFLAGS = -shared $(LD_DPLAY) -lole32 $(shell $(PKGCONFIG) --libs gio-2.0 nice)
 
 # Tests
 TEST_TARGET = test.exe

@@ -1,6 +1,7 @@
 #include "GameSession.hpp"
 #include "nicesp.hpp"
 #include "../util.hpp"
+#include <dplib/DPLobby.hpp>
 #include <gio/gnetworking.h>
 #include <ctime>
 #include <iostream>
@@ -10,6 +11,7 @@
 #include "debug.hpp"
 
 using namespace std;
+using dplib::DPLobby;
 
 namespace nicesp {
 
@@ -17,7 +19,6 @@ const gchar* DEFAULT_SIGNALING_HOST = "localhost";
 const guint DEFAULT_SIGNALING_PORT = 7788;
 
 GMainLoop* gloop;
-IDirectPlayLobby3A* _lobby;
 map<void*, DPID> _replyTargetsHACK;
 GameSession* _gameSession;
 
@@ -27,29 +28,16 @@ static GameSession* getGameSession (IDirectPlaySP* provider) {
 }
 
 /**
- * Get the Lobby connection settings for this session.
  * (Are Service Providers suppposed to access this? Well, it works, so…)
  */
-DPLCONNECTION* getDPLConnection () {
-  g_debug("[getDPLConnection]");
-  DWORD size;
-  _lobby->GetConnectionSettings(0, NULL, &size);
-  auto conndata = malloc(size);
-  auto hr = _lobby->GetConnectionSettings(0, conndata, &size);
-  if (FAILED(hr)) {
-    return NULL;
-  }
-  return static_cast<DPLCONNECTION*>(conndata);
-}
-
 GUID getSessionGuid () {
   g_debug("[getSessionGuid]");
-  auto connection = getDPLConnection();
+  auto connection = DPLobby::get()->getConnectionSettings();
   if (connection == NULL) {
     g_critical("[getSessionGuid] DPLConnection is null");
   }
-  auto guid = connection->lpSessionDesc->guidInstance;
-  free(connection);
+  auto guid = connection->getSessionDesc()->getSessionGuid();
+  delete connection;
   return guid;
 }
 
@@ -321,7 +309,10 @@ static HRESULT WINAPI DPNice_Open (DPSP_OPENDATA* data) {
       auto message = new DPSP_MSG_ENUMSESSIONS;
       message->flags = 0;
       message->passwordOffset = 0;
-      message->applicationGuid = getDPLConnection()->lpSessionDesc->guidApplication;
+      message->applicationGuid = DPLobby::get()
+        ->getConnectionSettings()
+        ->getSessionDesc()
+        ->getApplicationGuid();
       currentEnumSessionsMessageId = id;
       provider->HandleMessage(message, sizeof(*message), NULL);
     };
@@ -516,14 +507,6 @@ BOOL WINAPI DllMain (HINSTANCE instance, DWORD reason, void* reserved) {
     g_message("[DllMain] INITIALISE");
     g_message("--------------------");
 
-    CoCreateInstance(
-      CLSID_DirectPlayLobby,
-      NULL,
-      CLSCTX_ALL,
-      IID_IDirectPlayLobby3A,
-      reinterpret_cast<void**>(&nicesp::_lobby)
-    );
-
     DisableThreadLibraryCalls(instance);
     break;
   case DLL_PROCESS_DETACH:
@@ -532,8 +515,6 @@ BOOL WINAPI DllMain (HINSTANCE instance, DWORD reason, void* reserved) {
     g_message("-----------------");
 
     teardownLogging();
-
-    nicesp::_lobby->Release();
     break;
   default:
     break;
