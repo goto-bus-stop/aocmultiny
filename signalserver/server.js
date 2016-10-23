@@ -1,3 +1,4 @@
+'use strict'
 const net = require('net')
 const split = require('split')
 
@@ -40,6 +41,7 @@ const server = net.createServer((socket) => {
   const playerId = nextPlayerId++
   const player = new Player(playerId, socket)
   let host
+  let hostingSession
   players[playerId] = player
   socket
     .pipe(split('\n'))
@@ -52,6 +54,7 @@ const server = net.createServer((socket) => {
           console.log('new session', sid)
           sessions[sid] = player
           host = player
+          hostingSession = sid
         }
       } else if (/^join /.test(line)) {
         const sid = line.substr(5)
@@ -99,7 +102,9 @@ const server = net.createServer((socket) => {
     })
     .on('end', () => {
       delete players[player.id]
-      delete sessions[player.id]
+      if (hostingSession) {
+        delete sessions[hostingSession]
+      }
     })
 })
 
