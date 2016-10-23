@@ -1,9 +1,17 @@
+#pragma once
 #include <dplaysp.h>
 #include <string>
 #include <iostream>
 
+using std::string;
 using std::ostream;
 using std::to_string;
+
+string ptr_to_string (void* ptr) {
+  char* chars = new char[12];
+  sprintf(chars, "%p", ptr);
+  return chars;
+}
 
 ostream& operator<<(ostream& os, DPSP_ADDPLAYERTOGROUPDATA* data) {
   return os << "AddPlayerToGroup { "
@@ -19,7 +27,7 @@ ostream& operator<<(ostream& os, DPSP_CLOSEDATA* data) {
 ostream& operator<<(ostream& os, DPSP_CREATEGROUPDATA* data) {
   return os << "CreateGroup { "
             << "group = " << to_string(data->idGroup) << ", "
-            << "spMessageHeader = " << g_strdup_printf("%p", data->lpSPMessageHeader) << " "
+            << "spMessageHeader = " << ptr_to_string(data->lpSPMessageHeader) << " "
             << "}";
 }
 
@@ -37,7 +45,7 @@ ostream& operator<<(ostream& os, DPSP_CREATEPLAYERDATA* data) {
     << (data->dwFlags & DPLAYI_GROUP_HIDDEN ? "GROUP_HIDDEN" : "") << "), "
     << "serverPlayer = " << (data->dwFlags & DPPLAYER_SERVERPLAYER ? "true" : "false") << ", "
     << "spectator = " << (data->dwFlags & DPPLAYER_SPECTATOR ? "true" : "false") << ", "
-    << "spMessageHeader = " << g_strdup_printf("%p", data->lpSPMessageHeader) << " "
+    << "spMessageHeader = " << ptr_to_string(data->lpSPMessageHeader) << " "
     << "}";
 }
 
@@ -58,7 +66,7 @@ ostream& operator<<(ostream& os, DPSP_DELETEPLAYERDATA* data) {
 ostream& operator<<(ostream& os, DPSP_ENUMSESSIONSDATA* data) {
   return os << "EnumSessions { "
             << "size = " << to_string(data->dwMessageSize) << ", "
-            << "message = " << g_strdup_printf("%p", data->lpMessage) << ", "
+            << "message = " << ptr_to_string(data->lpMessage) << ", "
             << "returnStatus = " << (data->bReturnStatus ? "true" : "false") << " "
             << "}";
 }
@@ -117,7 +125,7 @@ ostream& operator<<(ostream& os, DPSP_REMOVEPLAYERFROMGROUPDATA* data) {
 ostream& operator<<(ostream& os, DPSP_REPLYDATA* data) {
   return os << "Reply { "
             << "size = " << to_string(data->dwMessageSize) << ", "
-            << "message = " << g_strdup_printf("%p", data->lpMessage) << ", "
+            << "message = " << ptr_to_string(data->lpMessage) << ", "
             << "nameserver = " << to_string(data->idNameServer) << " "
             << "}";
 }
@@ -128,7 +136,7 @@ ostream& operator<<(ostream& os, DPSP_SENDDATA* data) {
             << "from = " << to_string(data->idPlayerFrom) << ", "
             << "flags = " << to_string(data->dwFlags) << ", "
             << "size = " << to_string(data->dwMessageSize) << ", "
-            << "message = " << g_strdup_printf("%p", data->lpMessage) << ", "
+            << "message = " << ptr_to_string(data->lpMessage) << ", "
             << "system = " << (data->bSystemMessage ? "true" : "false") << " "
             << "}";
 }
