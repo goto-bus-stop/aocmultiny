@@ -8,7 +8,7 @@ using std::vector;
 
 namespace nicesp {
 
-extern GMainLoop* gloop;
+extern GMainLoop* mainLoop;
 
 class GameSession;
 

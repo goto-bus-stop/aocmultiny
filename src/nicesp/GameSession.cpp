@@ -68,7 +68,7 @@ gint Player::send (gsize size, void* message) {
 RemotePlayer::RemotePlayer (GameSession* session, DPID id)
     :
     Player(session, id),
-    agent(new NiceAgent(g_main_loop_get_context(gloop))) {
+    agent(new NiceAgent(g_main_loop_get_context(mainLoop))) {
   g_debug("[RemotePlayer::RemotePlayer]");
   // Set the STUN settings and controlling mode
   g_object_set(this->agent->unwrap(), "stun-server", "74.125.136.127", NULL);
@@ -160,7 +160,7 @@ void GameSession::processNewPlayer (DPID id) {
 
   auto stream = player->agent->addStream(1);
   stream->setName("application");
-  stream->attachRecv(1, g_main_loop_get_context(gloop), onReceiveNicePacket, player);
+  stream->attachRecv(1, g_main_loop_get_context(mainLoop), onReceiveNicePacket, player);
 
   this->players.push_back(player);
   // The game host is always the name server for now.
