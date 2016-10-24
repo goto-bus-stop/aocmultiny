@@ -2,8 +2,7 @@
 
 Tiny NAT-traversing Age of Empires 2 Multiplayer client.
 
-> VERY work in progress, it's probably pretty difficult to get it to compile. I
-> symlink dependency `.lib`s into the `lib/` folder manually currently.
+> VERY work in progress, it's probably pretty difficult to get it to compile.
 
 The idea is to get a single portable zero-install executable that you can hand
 to a few friends and immediately start playing. No creating accounts, no
@@ -33,28 +32,34 @@ On Linuxes:
 
  1. Install Wine and Mingw32. Something like
     `apt-get install wine mingw32 mingw32-binutils`.
- 2. Download and build [wxWidgets] 3.1.0 using [MinGW][mingwbuild].
- 3. Download the last [DirectX SDK with DirectPlay (August 2007)].
+ 2. Download and build [wxWidgets][] 3.1.0 using [MinGW][mingwbuild].
+ 3. Download the last [DirectX SDK with DirectPlay (August 2007)][].
  4. Symlink `dxguid.lib` and `dplayx.lib` from the DirectPlay SDK into `lib/`.
  5. `make` to build
  6. `make run` to run
 
 On Windowses with Visual Studio:
 
- 1. Download and build [wxWidgets] using [Visual Studio][vsbuild]. Import one of
+ 1. Download and build [wxWidgets][] using [Visual Studio][vsbuild]. Import one of
     the VS project files that comes with wxWidgets and build it.
- 2. Download the last [DirectX SDK with DirectPlay (August 2007)].
+ 2. Download the last [DirectX SDK with DirectPlay (August 2007)][].
  3. Configure environment variables:
     - `WXWIN=` path to your wxWidgets build base directory.
  4. Import the AoCMultiny.sln solution file.
 
 ## Credits/References
 
- - IRC: Took clues (and an IRC message parser) from [Fredi/IRCClient]
- - DirectPlay: I used [@biegleux]'s Delphi [DPLobbySystem] as a reference for
+ - IRC: Took clues (and an IRC message parser) from [Fredi/IRCClient][]
+ - DirectPlay: I used [@biegleux]'s Delphi [DPLobbySystem][] as a reference for
    most of the DirectPlay lobby/game setup. I'm not sure if the sources are
    still online, but I'll link them here if I can find them.
- - DirectPlay: The DirectPlay sections in the [DirectX 7 SDK documentation].
+ - DirectPlay: The DirectPlay sections in the [DirectX 7 SDK documentation][].
+ - nicesp: Took clues from [@RazZziel]'s [dpwsockx implementation][dpwsockx] and
+   [@solemnwarning][]'s [ipxwrapper][].
+
+## License
+
+[GPL 3.0][]
 
 [Fredi/IRCClient]: https://github.com/Fredi/IRCClient
 [@biegleux]: https://github.com/biegleux
@@ -64,3 +69,8 @@ On Windowses with Visual Studio:
 [mingwbuild]: https://wiki.wxwidgets.org/Cross-Compiling_Under_Linux#Cross-compiling_under_Linux_for_MS_Windows
 [vsbuild]: https://wiki.wxwidgets.org/Microsoft_Visual_C%2B%2B_Guide
 [DirectX 7 SDK documentation]: http://idlebeaver.ninja/dx7/
+[@RazZziel]: https://github.com/razzziel
+[@solemnwarning]: https://github.com/solemnwarning
+[ipxwrapper]: https://github.com/solemnwarning/ipxwrapper
+[dpwsockx]: http://github.com/razzziel/wine-dplay/tree/gsoc/dlls/dpwsockx
+[GPL 3.0]: ./LICENSE
