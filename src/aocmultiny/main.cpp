@@ -7,9 +7,9 @@
 #include <dplib/DPGameAoC.hpp>
 #include <string>
 #include <iostream>
-#include <vector>
-#include <algorithm>
 #include <wx/app.h>
+#include <wx/cmdline.h>
+#include <wx/utils.h>
 
 using namespace std;
 using dplib::DPLobby;
@@ -17,51 +17,59 @@ using aocmultiny::gui::MainFrame;
 
 namespace aocmultiny {
 
-static wstring stow (string s) {
-  wstring w;
-  for (auto c : s) {
-    w.push_back(c);
-  }
-  return w;
-}
-
 const GUID DPSPGUID_NICE = { 0xe2dd8ebe, 0x1f03, 0x43b7, { 0x8d, 0x92, 0x9c, 0x6c, 0x2f, 0x5c, 0x44, 0x26 } };
 
-bool App::OnInit () {
-  CoInitialize(NULL);
+void App::OnInitCmdLine (wxCmdLineParser& parser) {
+  parser.AddSwitch("h", "help", "Show usage information.");
+  parser.AddLongOption("player", "The local player name. Defaults to the current operating system username.");
+  parser.AddLongSwitch("host", "Host a game. (Headless)");
+  parser.AddLongOption("join", "Join a game. (Headless)");
+}
 
-  wcout << "[main] Starting" << endl;
-  vector<string> params = split(GetCommandLineA(), ' ');
+bool App::OnCmdLineParsed (wxCmdLineParser& parser) {
+  if (parser.Found("h")) {
+    parser.Usage();
+    return false;
+  }
 
-  auto action = params.size() > 1 ? params[1] : "";
-  if (action == "host") {
-    wcout << "[main] Hosting" << endl;
+  // Try to read the --player flag, or default to the current user.
+  wxString wxPlayerName = wxGetUserId();
+  parser.Found("player", &wxPlayerName);
+  string playerName = wxPlayerName.ToStdString();
+
+  if (parser.Found("host")) {
+    wcout << "[main] Hosting as " << playerName << endl;
     auto game = new dplib::DPGameAoC();
     auto address = new dplib::DPAddress(DPSPGUID_NICE);
     auto session = DPLobby::get()->hostSession(game, address);
     session
-      ->setPlayerName("Host")
+      ->setPlayerName(playerName)
       ->launch();
     return false;
-  } else if (action == "join") {
-    GUID sessionId; IIDFromString(stow(params[2]).c_str(), &sessionId);
-    wcout << "[main] Joining " << to_wstring(sessionId) << endl;
+  } else if (parser.Found("join")) {
+    // Bit roundabout: wxString → wchar_t* → GUID.
+    wxString sessionStr;
+    GUID sessionId;
+    parser.Found("join", &sessionStr);
+    IIDFromString(sessionStr.c_str(), &sessionId);
+
+    wcout << "[main] Joining " << to_wstring(sessionId) << " as " << playerName << endl;
     auto game = new dplib::DPGameAoC();
     auto address = new dplib::DPAddress(DPSPGUID_NICE);
     // TODO add in address stuff.
     auto session = DPLobby::get()->joinSession(game, address, sessionId);
     session
-      ->setPlayerName("Rando")
+      ->setPlayerName(playerName)
       ->launch();
     return false;
-  } else if (action == "cli") {
-    wcout << "[main] IRC" << endl;
-    auto irc = new irc::IRC("localhost");
-    auto cli = new cli::CLI(irc);
-    cli->start();
-    delete irc;
-    return false;
   }
+}
+
+bool App::OnInit () {
+  CoInitialize(NULL);
+  this->irc = nullptr;
+
+  wcout << "[main] Starting" << endl;
 
   if (!wxApp::OnInit()) {
     return false;
@@ -84,7 +92,9 @@ bool App::OnInit () {
 }
 
 int App::OnExit () {
-  delete this->irc;
+  if (this->irc) {
+    delete this->irc;
+  }
 
   CoUninitialize();
 
