@@ -3,6 +3,7 @@
 #include "DPLobby.hpp"
 #include "DPGame.hpp"
 #include "DPSession.hpp"
+#include "DPApplication.hpp"
 
 using namespace std;
 
@@ -71,6 +72,14 @@ HRESULT DPLobby::create () {
 
 IDirectPlayLobby3A* DPLobby::getInternalLobby () {
   return this->dpLobby;
+}
+
+HRESULT DPLobby::registerApplication (DPApplication* application) {
+  return this->registerApplication(application->unwrap());
+}
+
+HRESULT DPLobby::registerApplication (DPAPPLICATIONDESC* application) {
+  return this->dpLobby->RegisterApplication(0, application);
 }
 
 DPLConnection* DPLobby::getConnectionSettings (DWORD appId) {

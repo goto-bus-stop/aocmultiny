@@ -2,6 +2,7 @@
 #include "DPAddress.hpp"
 #include "DPGame.hpp"
 #include "DPSession.hpp"
+#include "DPApplication.hpp"
 #include "dputil.hpp"
 #include <dplay.h>
 #include <dplobby.h>
@@ -77,6 +78,12 @@ public:
    * Retrieve the raw DirectPlay lobby instance.
    */
   IDirectPlayLobby3A* getInternalLobby ();
+
+  /**
+   * Register a new lobby-aware DirectPlay application.
+   */
+  HRESULT registerApplication (DPApplication* application);
+  HRESULT registerApplication (DPAPPLICATIONDESC* application);
 
   /**
    * Get DirectPlay connection settings for a session. If used in a lobby
