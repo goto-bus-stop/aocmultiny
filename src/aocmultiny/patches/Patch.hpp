@@ -12,6 +12,8 @@ public:
   ~Patch ();
 
   wstring getAoCDirectory ();
+  wstring getHDDirectory ();
+  wstring getTempDirectory ();
 
   virtual void install ();
 };
