@@ -1,4 +1,5 @@
 #include "UserPatch.hpp"
+#include <dplib/DPApplication.hpp>
 #include <wx/utils.h>
 #include <wx/protocol/http.h>
 #include <wx/wfstream.h>
@@ -7,6 +8,7 @@
 #include <iostream>
 
 using std::string;
+using dplib::DPApplication;
 
 namespace aocmultiny {
 namespace patches {
@@ -65,9 +67,16 @@ wstring UPConfig::str () {
   });
 }
 
+UserPatch::UserPatch () {
+  this->filename = L"age2_aocmultiny.exe";
+  this->directory = this->getAoCDirectory() + L"\\age2_x1";
+  this->path = this->directory + L"\\" + this->filename;
+  this->installerPath = this->getAoCDirectory() + L"\\aocmultiny-SetupAoC.exe";
+}
+
 // TODO should probably host it somewhere of our own instead. With HTTPS and
 // *just* the installer so we don't need the zip stuff.
-static void downloadInstaller (wstring exeFile) {
+void UserPatch::downloadInstaller () {
   wxHTTP get;
   get.SetTimeout(10);
   while (!get.Connect("userpatch.aiscripters.net")) {
@@ -76,7 +85,7 @@ static void downloadInstaller (wstring exeFile) {
   auto httpStream = get.GetInputStream("/UserPatch.v1.4.20150723-000000.zip");
   auto zipStream = new wxZipInputStream(httpStream);
 
-  auto outputStream = new wxFileOutputStream(exeFile);
+  auto outputStream = new wxFileOutputStream(this->installerPath);
 
   wxZipEntry* entry;
   while ((entry = zipStream->GetNextEntry())) {
@@ -92,18 +101,29 @@ static void downloadInstaller (wstring exeFile) {
   delete zipStream;
 }
 
-static void runInstaller (wstring path, UPConfig config) {
-  wxExecute(path + L" -i -f:" + config.str(), wxEXEC_SYNC);
+void UserPatch::runInstaller () {
+  wxExecute(this->installerPath + L" -i -f:" + this->config.str(), wxEXEC_SYNC);
+
+  auto app = DPApplication::create(GUID_UserPatch)
+    ->appName("Age of Empires II: UserPatch v1.4 RC")
+    ->filename(this->filename)
+    ->path(this->directory)
+    ->currentDirectory(this->getAoCDirectory())
+    ->commandLine("lobby");
+
+  app->register_();
+
+  delete app;
+}
+
+void UserPatch::removeInstaller () {
+  _wremove(this->installerPath.c_str());
 }
 
 void UserPatch::install () {
-  auto exeFile = L"aocmultiny-SetupAoC.exe";
-  auto dir = this->getAoCDirectory();
-  auto path = dir + L"\\" + exeFile;
-  UPConfig config;
-
-  downloadInstaller(path);
-  runInstaller(path, config);
+  this->downloadInstaller();
+  this->runInstaller();
+  this->removeInstaller();
 }
 
 }
