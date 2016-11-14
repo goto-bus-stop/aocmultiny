@@ -53,6 +53,20 @@ VDFNode VDFParser::parse () {
   return this->parseTree();
 }
 
+string unescapeVDFString (string source) {
+  string result = "";
+  char last = '\0';
+  for (auto c : source) {
+    if (c == '\\' && last == '\\') {
+      // Skip
+    } else {
+      result.push_back(c);
+    }
+    last = c;
+  }
+  return result;
+}
+
 VDFNode VDFParser::parseTree () {
   auto tree = VDFNode();
   string key = "";
@@ -63,7 +77,8 @@ VDFNode VDFParser::parseTree () {
     if (c == '"') {
       auto start = this->i;
       auto end = this->source.find('"', start);
-      string str = this->source.substr(start, end - start);
+      string str = unescapeVDFString(this->source.substr(start, end - start));
+
       if (!isValue) {
         isValue = true;
         key = str;
