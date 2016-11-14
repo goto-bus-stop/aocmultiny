@@ -46,32 +46,47 @@ wstring Patch::getHDDirectory () {
     return L"";
   }
 
+  std::cout << "Steam install path: " << steamPath << std::endl;
+
   try {
+    std::cout << "Vdf: " << steamPath + "\\SteamApps\\libraryfolders.vdf" << std::endl;
+
     auto library = VDFFile(steamPath + "\\SteamApps\\libraryfolders.vdf").parse();
     libraryFolders.push_back(steamPath + "\\SteamApps");
     // Numeric LibraryFolders keys signify additional library folders.
-    for (auto const& entry : library["LibraryFolders"]) {
+    for (const auto& entry : library["LibraryFolders"]) {
       auto key = entry.first;
       auto isNumeric = find_if(key.begin(), key.end(), [] (auto c) { return !isdigit(c); }) == key.end();
       if (isNumeric && entry.second.isValue()) {
-        libraryFolders.push_back(string(entry.second));
+        libraryFolders.push_back(string(entry.second) + "\\SteamApps");
       }
-    }
-
-    // HD Edition manifest file.
-    auto manifest = "appmanifest_221380.acf";
-    for (auto const& folder : libraryFolders) {
-      auto app = VDFFile(folder + "\\" + manifest).parse();
-      auto dir = folder + string(app["AppState"]["installdir"]);
-      wstring wide;
-      for (auto const c : dir) wide.push_back(c);
-      return wide;
     }
   } catch (const std::exception &e) {
     // Can't catch ios_base::failure here because of
     // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66145
     std::cerr << "Could not find HD Edition install path: " << e.what() << std::endl;
     return L"";
+  }
+
+  std::cout << "Detected library folders: " << std::endl;
+  for (const auto& folder : libraryFolders) {
+    std::cout << " - " << folder << std::endl;
+  }
+
+  // HD Edition manifest file.
+  auto manifest = "appmanifest_221380.acf";
+  for (const auto& folder : libraryFolders) {
+    std::cout << "Attempting manifest: " << folder + "\\" + manifest << std::endl;
+    try {
+      auto app = VDFFile(folder + "\\" + manifest).parse();
+      auto dir = folder + "\\" + string(app["AppState"]["installdir"]);
+      std::cout << "Detected directory: " << dir << std::endl;
+      wstring wide;
+      for (const auto c : dir) wide.push_back(c);
+      return wide;
+    } catch (const std::exception &e) {
+      // Ignore. Probably just doesn't exist.
+    }
   }
   return L"";
 }
