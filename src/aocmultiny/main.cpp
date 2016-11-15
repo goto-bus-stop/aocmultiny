@@ -20,17 +20,14 @@ namespace aocmultiny {
 const GUID DPSPGUID_NICE = { 0xe2dd8ebe, 0x1f03, 0x43b7, { 0x8d, 0x92, 0x9c, 0x6c, 0x2f, 0x5c, 0x44, 0x26 } };
 
 void App::OnInitCmdLine (wxCmdLineParser& parser) {
-  parser.AddSwitch("h", "help", "Show usage information.");
+  wxApp::OnInitCmdLine(parser);
+
   parser.AddLongOption("player", "The local player name. Defaults to the current operating system username.");
   parser.AddLongSwitch("host", "Host a game. (Headless)");
   parser.AddLongOption("join", "Join a game. (Headless)");
 }
 
 bool App::OnCmdLineParsed (wxCmdLineParser& parser) {
-  if (parser.Found("h")) {
-    parser.Usage();
-    return false;
-  }
 
   // Try to read the --player flag, or default to the current user.
   wxString wxPlayerName = wxGetUserId();
@@ -63,6 +60,8 @@ bool App::OnCmdLineParsed (wxCmdLineParser& parser) {
       ->launch();
     return false;
   }
+
+  return wxApp::OnCmdLineParsed(parser);
 }
 
 bool App::OnInit () {
