@@ -94,6 +94,8 @@ wstring Patch::getHDDirectory () {
 wstring Patch::getTempDirectory () {
   auto path = new wchar_t[261];
   if (GetTempPath(261, path)) {
+    // Ensure the directory actually exists.
+    CreateDirectory(path, NULL);
     return path;
   }
   return L".";
