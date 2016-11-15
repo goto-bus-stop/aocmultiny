@@ -6,6 +6,7 @@
 #include <wx/zipstrm.h>
 #include <string>
 #include <iostream>
+#include "../util/CurlInputStream.hpp"
 
 using std::string;
 using dplib::DPApplication;
@@ -68,6 +69,9 @@ wstring UPConfig::str () {
 }
 
 UserPatch::UserPatch () {
+}
+
+void UserPatch::initialize () {
   this->filename = L"age2_aocmultiny.exe";
   this->directory = this->getAoCDirectory() + L"\\age2_x1";
   this->path = this->directory + L"\\" + this->filename;
@@ -77,21 +81,42 @@ UserPatch::UserPatch () {
 // TODO should probably host it somewhere of our own instead. With HTTPS and
 // *just* the installer so we don't need the zip stuff.
 void UserPatch::downloadInstaller () {
-  wxHTTP get;
-  get.SetTimeout(10);
-  while (!get.Connect("userpatch.aiscripters.net")) {
-    wxSleep(1);
-  }
-  auto httpStream = get.GetInputStream("/UserPatch.v1.4.20150723-000000.zip");
+  // wxHTTP get;
+  // get.SetTimeout(10);
+  // while (!get.Connect("userpatch.aiscripters.net")) {
+  //   wxSleep(1);
+  // }
+  // auto httpStream = get.GetInputStream("/UserPatch.v1.4.20150723-000000.zip");
+  auto httpStream = new aocmultiny::util::CurlInputStream();
+  httpStream->get("http://userpatch.aiscripters.net/UserPatch.v1.4.20150723-000000.zip");
+
   auto zipStream = new wxZipInputStream(httpStream);
 
   auto outputStream = new wxFileOutputStream(this->installerPath);
 
   wxZipEntry* entry;
+  float progress = 0.0f;
   while ((entry = zipStream->GetNextEntry())) {
+    std::cout << "[UserPatch::downloadInstaller] " << entry->GetName() << std::endl;
     if (entry->GetName() == "UserPatch\\SetupAoC.exe") {
       zipStream->OpenEntry(*entry);
-      outputStream->Write(*zipStream);
+      // outputStream->Write(*zipStream);
+
+      auto buffer = new char[4096];
+      while (!zipStream->Eof()) {
+        if (!zipStream->Read(buffer, 4096)) {
+          std::cerr << "Could not read: " << zipStream->GetLastError() << std::endl;
+        } else {
+          auto chunkSize = zipStream->LastRead();
+          auto totalSize = zipStream->GetSize();
+          progress += chunkSize;
+          int progressValue = (progress / (float) totalSize) * 100.0f;
+          outputStream->WriteAll(buffer, chunkSize);
+          this->progress(progressValue);
+        }
+      }
+      delete buffer;
+
       zipStream->CloseEntry();
       break;
     }
@@ -99,6 +124,7 @@ void UserPatch::downloadInstaller () {
 
   delete outputStream;
   delete zipStream;
+  // get.Close();
 }
 
 void UserPatch::runInstaller () {
@@ -121,8 +147,16 @@ void UserPatch::removeInstaller () {
 }
 
 void UserPatch::install () {
+  this->step(L"Initializing");
+  this->initialize();
+
+  this->step(L"Downloading");
   this->downloadInstaller();
+
+  this->step(L"Installing");
   this->runInstaller();
+
+  this->step(L"Cleaning up");
   this->removeInstaller();
 }
 

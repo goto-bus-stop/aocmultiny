@@ -26,8 +26,8 @@ CLIENT_SRC = src/aocmultiny
 CLIENT_FILES = $(shell find $(CLIENT_SRC) -name "*.cpp")
 CLIENT_OBJECTS = $(CLIENT_FILES:.cpp=.o) $(UTIL_OBJECTS)
 CLIENT_LIBS = lib/dplayx.lib lib/dxguid.lib $(DPLIB_TARGET)
-CLIENT_CFLAGS = -Isrc/ $(shell $(WXC) --cxxflags)
-CLIENT_LDFLAGS = -static $(LD_DPLIB) -lole32 -loleaut32 -lws2_32 $(shell $(WXC) --libs)
+CLIENT_CFLAGS = -Isrc/ $(shell $(WXC) --cxxflags) $(shell $(PKGCONFIG) --cflags libcurl)
+CLIENT_LDFLAGS = -static $(LD_DPLIB) $(shell $(PKGCONFIG) --libs libcurl) -lws2_32 -lole32 -loleaut32 $(shell $(WXC) --libs) -luser32
 
 # libnice DirectPlay Service Provider DLL target
 NICESP_TARGET = nicesp.dll

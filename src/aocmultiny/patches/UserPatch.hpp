@@ -46,6 +46,7 @@ private:
   wstring directory;
   wstring path;
 
+  void initialize ();
   void downloadInstaller ();
   void runInstaller ();
   void removeInstaller ();

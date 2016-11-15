@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <exception>
+#include <wx/progdlg.h>
 
 namespace aocmultiny {
 namespace patches {
@@ -20,11 +21,43 @@ using aocmultiny::util::Registry;
 using aocmultiny::util::VDFFile;
 
 Patch::Patch () {
+  this->progressDialog = new wxProgressDialog(
+    "Patch installation",
+    "Waiting",
+    100,
+    NULL,
+    wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT |
+    wxPD_SMOOTH | wxPD_REMAINING_TIME
+  );
 }
 Patch::~Patch () {
+  delete this->progressDialog;
 }
 
 void Patch::install () {}
+
+void Patch::step (wstring message) {
+  std::wcout << "[Patch::step] Indeterminate: " << message << std::endl;
+  this->progressDialog->Pulse(message);
+  this->progressDialog->Show();
+}
+
+void Patch::step (wstring message, int max) {
+  std::wcout << "[Patch::step] Determinate: " << message << std::endl;
+  this->progressDialog->SetRange(max);
+  this->progressDialog->Update(0, message);
+  this->progressDialog->Show();
+}
+
+void Patch::progress () {
+  this->progressDialog->Pulse();
+}
+
+void Patch::progress (int current) {
+  if (current != this->progressDialog->GetRange()) {
+    this->progressDialog->Update(current);
+  }
+}
 
 wstring Patch::getAoCDirectory () {
   Registry registry (HKEY_LOCAL_MACHINE);
