@@ -9,7 +9,10 @@
 #include <iostream>
 #include <wx/app.h>
 #include <wx/cmdline.h>
+#include <wx/socket.h>
 #include <wx/utils.h>
+#include "patches/HDCompat.hpp"
+#include "patches/UserPatch.hpp"
 
 using namespace std;
 using dplib::DPLobby;
@@ -25,9 +28,25 @@ void App::OnInitCmdLine (wxCmdLineParser& parser) {
   parser.AddLongOption("player", "The local player name. Defaults to the current operating system username.");
   parser.AddLongSwitch("host", "Host a game. (Headless)");
   parser.AddLongOption("join", "Join a game. (Headless)");
+  parser.AddSwitch("hd", "hdcompat", "Attempt to install the aoccs.net HD Edition compatibility patch.");
+  parser.AddSwitch("up", "userpatch", "Attempt to install UserPatch.");
 }
 
 bool App::OnCmdLineParsed (wxCmdLineParser& parser) {
+  if (parser.Found("hd")) {
+    std::cout << "Installing HD Compat Patch" << std::endl;
+    auto hd = new aocmultiny::patches::HDCompat();
+    hd->install();
+  }
+  if (parser.Found("up")) {
+    std::cout << "Installing UserPatch" << std::endl;
+    auto up = new aocmultiny::patches::UserPatch();
+    up->install();
+  }
+
+  if (parser.Found("hd") || parser.Found("up")) {
+    return false;
+  }
 
   // Try to read the --player flag, or default to the current user.
   wxString wxPlayerName = wxGetUserId();
@@ -68,6 +87,8 @@ bool App::OnInit () {
   CoInitialize(NULL);
   this->irc = nullptr;
 
+  wxSocketBase::Initialize();
+
   wcout << "[main] Starting" << endl;
 
   if (!wxApp::OnInit()) {
@@ -94,6 +115,8 @@ int App::OnExit () {
   if (this->irc) {
     delete this->irc;
   }
+
+  wxSocketBase::Shutdown();
 
   CoUninitialize();
 
