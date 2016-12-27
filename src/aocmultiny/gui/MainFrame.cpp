@@ -13,7 +13,8 @@ namespace gui {
 
 MainFrame::MainFrame (const wxString& title, IRC* irc)
     :
-    wxFrame(NULL, wxID_ANY, title) {
+    wxFrame(NULL, wxID_ANY, title),
+    irc(irc) {
   auto menuFile = new wxMenu;
   menuFile->Append(
     101,
@@ -28,7 +29,6 @@ MainFrame::MainFrame (const wxString& title, IRC* irc)
   menuBar->Append(menuFile, wxT("&File"));
   menuBar->Append(menuHelp, wxT("&Help"));
 
-  this->irc = irc;
   auto panel = new wxPanel(this);
   auto vbox = new wxBoxSizer(wxVERTICAL);
   panel->SetSizer(vbox);
@@ -41,16 +41,30 @@ MainFrame::MainFrame (const wxString& title, IRC* irc)
   this->SetMenuBar(menuBar);
   this->CreateStatusBar();
   this->SetStatusText(wxT("Welcome to wxWidgets!"));
+
+  this->irc->onChannelList += [this] (auto channels) {
+    this->setRooms(channels);
+  };
+
+  this->irc->list();
+
+  this->timer = new wxTimer(this);
+  this->timer->Start(5000);
 }
 
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
   EVT_COMMAND(ID_JOIN_ROOM, JOIN_ROOM, MainFrame::onJoinRoom)
+  EVT_TIMER(wxID_ANY, MainFrame::onTimer)
   EVT_MENU(wxID_EXIT, MainFrame::onExit)
   EVT_MENU(wxID_ABOUT, MainFrame::onAbout)
 wxEND_EVENT_TABLE()
 
 void MainFrame::setRooms (vector<Channel*> rooms) {
   this->roomList->setRooms(rooms);
+}
+
+void MainFrame::onTimer (wxTimerEvent& event) {
+  this->irc->list();
 }
 
 void MainFrame::onJoinRoom (wxCommandEvent& event) {

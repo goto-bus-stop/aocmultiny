@@ -1,17 +1,11 @@
 #include <stdlib.h>
 #include <iostream>
 #include "DPSessionDesc.hpp"
+#include "../util.hpp"
 
 using namespace std;
 
-namespace aocmultiny {
 namespace dplib {
-
-wstring GUIDToString (GUID guid) {
-  wchar_t* str = static_cast<wchar_t*>(malloc(51 * sizeof(wchar_t)));
-  StringFromGUID2(guid, str, 50);
-  return str;
-}
 
 DPSessionDesc::DPSessionDesc (GUID guidApplication, GUID guidInstance, string sessionName, string sessionPass, bool host)
     :
@@ -27,11 +21,27 @@ bool DPSessionDesc::isHost () {
   return this->host;
 }
 
+GUID DPSessionDesc::getApplicationGuid () {
+  return this->guidApplication;
+}
+
+GUID DPSessionDesc::getSessionGuid () {
+  return this->guidInstance;
+}
+
+string DPSessionDesc::getName () {
+  return this->name;
+}
+
+string DPSessionDesc::getPassword () {
+  return this->pass;
+}
+
 void DPSessionDesc::alloc () {
   auto sessionDesc = new DPSESSIONDESC2;
   sessionDesc->dwSize = sizeof(DPSESSIONDESC2);
   sessionDesc->dwFlags = 0;
-  wcout << "[DPSessionDesc::alloc] guidInstance: " << GUIDToString(guidInstance) << endl;
+  wcout << "[DPSessionDesc::alloc] guidInstance: " << to_wstring(guidInstance) << endl;
   sessionDesc->guidInstance = guidInstance;
   sessionDesc->guidApplication = guidApplication;
   sessionDesc->dwMaxPlayers = 8;
@@ -61,5 +71,14 @@ DPSessionDesc::~DPSessionDesc () {
   delete this->dpSessionDesc;
 }
 
+DPSessionDesc* DPSessionDesc::parse (DPSESSIONDESC2* raw, bool isHost) {
+  return new DPSessionDesc(
+    raw->guidApplication,
+    raw->guidInstance,
+    raw->lpszSessionNameA != NULL ? raw->lpszSessionNameA : "",
+    raw->lpszPasswordA != NULL ? raw->lpszPasswordA : "",
+    isHost
+  );
 }
+
 }

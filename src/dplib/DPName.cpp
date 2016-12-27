@@ -3,7 +3,6 @@
 #include <dplobby.h>
 #include "DPName.hpp"
 
-namespace aocmultiny {
 namespace dplib {
 
 DPName::DPName (std::string name)
@@ -15,9 +14,10 @@ DPName::DPName (std::string name)
 void DPName::alloc () {
   this->dpName = new DPNAME;
 
-  auto length = this->name.length();
-  auto nameStr = static_cast<char*>(calloc(length + 1, sizeof(char)));
-  this->name.copy(nameStr, length, 0);
+  const auto length = this->name.size();
+  auto nameStr = new char[length + 1];
+  nameStr[length] = '\0';
+  memcpy(nameStr, this->name.c_str(), length);
 
   this->dpName->dwSize = sizeof(DPNAME);
   this->dpName->dwFlags = 0;
@@ -34,5 +34,8 @@ DPName::~DPName () {
   delete this->dpName;
 }
 
+DPName* DPName::parse (DPNAME* raw) {
+  return new DPName(raw->lpszLongNameA);
 }
+
 }

@@ -1,0 +1,9 @@
+REGEDIT4
+
+[HKEY_LOCAL_MACHINE\Software\Microsoft\DirectPlay\Service Providers\NICE]
+"DescriptionA"="libNICE Connection For DirectPlay"
+"DescriptionW"="libNICE Connection for DirectPlay"
+"dwReserved1"=dword:00000000
+"dwReserved2"=dword:00000000
+"Guid"="{E2DD8EBE-1F03-43B7-8D92-9C6C2F5C4426}"
+"Path"="nicesp.dll"

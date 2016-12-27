@@ -5,15 +5,13 @@
 
 using namespace std;
 
-namespace aocmultiny {
 namespace dplib {
 
 DPGameAoC::DPGameAoC ()
     :
     DPGame(GUID_AoC) {
-  this->preset = static_cast<DPGameAoCPresetData*>(
-    calloc(1, sizeof(DPGameAoCPresetData))
-  );
+  this->preset = new DPGameAoCPresetData;
+  ZeroMemory(this->preset, sizeof(DPGameAoCPresetData));
   this->preset->u2[0] = 13;
   this->preset->u2[2] = 1;
   this->preset->u2[4] = 1;
@@ -23,7 +21,7 @@ DPGameAoC::DPGameAoC ()
 }
 
 DPGameAoC::~DPGameAoC () {
-  free(this->preset);
+  delete this->preset;
 }
 
 void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
@@ -31,13 +29,13 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
     wcout << "[DPGameAoC::receiveMessage] received STANDARD message, discarding" << endl;
     return;
   }
-  auto lobby = message->lobby;
+  auto session = message->session;
   auto sysMsg = static_cast<DPLMSG_SYSTEMMESSAGE*>(message->data);
   wcout << "[DPGameAoC::receiveMessage] received SYSTEMMESSAGE, processing" << endl;
   switch (sysMsg->dwType) {
   case DPLSYS_APPTERMINATED:
     wcout << "[DPGameAoC::receiveMessage] received APPTERMINATED message" << endl;
-    lobby->onAppTerminated.emit();
+    session->onAppTerminated.emit();
     message->stop();
     return;
   case DPLSYS_GETPROPERTY: {
@@ -56,8 +54,7 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
       wcout << "[DPGameAoC::receiveMessage] responding to Preset Data GETPROPERTY message " << endl;
       message->reply(getPropRes, responseSize);
     } else {
-      auto responseSize = sizeof(DPLMSG_GETPROPERTYRESPONSE);
-      auto getPropRes = static_cast<DPLMSG_GETPROPERTYRESPONSE*>(malloc(responseSize));
+      auto getPropRes = new DPLMSG_GETPROPERTYRESPONSE;
       getPropRes->dwType = DPLSYS_GETPROPERTYRESPONSE;
       getPropRes->dwRequestID = getPropMsg->dwRequestID;
       getPropRes->guidPlayer = getPropMsg->guidPlayer;
@@ -66,7 +63,7 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
       getPropRes->dwDataSize = 0;
       getPropRes->dwPropertyData[0] = 0;
       wcout << "[DPGameAoC::receiveMessage] responding to unknown GETPROPERTY message" << endl;
-      message->reply(getPropRes, responseSize);
+      message->reply(getPropRes, sizeof(getPropRes));
     }
     break;
   }
@@ -81,7 +78,7 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
     break;
   case DPLSYS_DPLAYCONNECTSUCCEEDED:
     wcout << "[DPGameAoC::receiveMessage] received CONNECTSUCCEEDED message!" << endl;
-    lobby->onConnectSucceeded.emit();
+    session->onConnectSucceeded.emit();
     break;
   default:
     wcout << "[DPGameAoC::receiveMessage] received unknown message: " << sysMsg->dwType << endl;
@@ -89,5 +86,4 @@ void DPGameAoC::receiveMessage (DPLobbyMessage* message) {
   }
 }
 
-}
 }

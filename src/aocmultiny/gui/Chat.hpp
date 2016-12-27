@@ -14,8 +14,8 @@ class Chat: public wxListView {
   wxDECLARE_DYNAMIC_CLASS(Chat);
 
 private:
-  string channelName;
   IRC* irc;
+  string channelName;
   int listener;
 
 public:

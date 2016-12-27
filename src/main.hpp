@@ -1,5 +1,0 @@
-namespace aocmultiny {
-
-void main ();
-
-}

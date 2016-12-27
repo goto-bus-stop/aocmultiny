@@ -6,6 +6,7 @@
 #include <vector>
 #include <wx/wx.h>
 #include <wx/listctrl.h>
+#include <wx/timer.h>
 
 using aocmultiny::irc::IRC;
 using aocmultiny::irc::Channel;
@@ -23,7 +24,9 @@ private:
   IRC* irc;
   RoomList* roomList;
   Chat* chat;
+  wxTimer* timer;
 
+  void onTimer (wxTimerEvent& event);
   void onHello (wxCommandEvent& event);
   void onExit (wxCommandEvent& event);
   void onAbout (wxCommandEvent& event);

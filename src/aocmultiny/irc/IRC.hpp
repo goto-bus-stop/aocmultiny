@@ -2,7 +2,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "Channel.hpp"
-#include "../util.hpp"
+#include "../../util.hpp"
 #include <functional>
 #include <string>
 #include <vector>
